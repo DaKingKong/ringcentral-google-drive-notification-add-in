@@ -1,6 +1,10 @@
-const { sendTextMessage, sendAdaptiveCardMessage } = require('../lib/messageHelper');
 const { google } = require('googleapis')
 const moment = require('moment');
+const { GoogleUser } = require('../models/googleUserModel');
+const { Subscription } = require('../models/subscriptionModel');
+const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
+const { getOAuthApp, checkAndRefreshAccessToken } = require('../lib/oauth');
+const crypto = require('crypto');
 
 const newCommentCardTemplate = require('../adaptiveCardPayloads/newCommentCard.json');
 const newFileSharedWithMeCardTemplate = require('../adaptiveCardPayloads/newFileShareWithMeCard.json');
@@ -13,18 +17,47 @@ function isEventNew(dateTime1, dateTime2) {
     return timeDiff < NEW_EVENT_TIME_THRESHOLD_IN_SECONDS;
 }
 
-async function onReceiveNotification(subscription, user) {
-    const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${user.accessToken}` } });
+async function notification(req, res) {
+    try {
+        // Identify which user or subscription is relevant, normally by 3rd party webhook id or user id. 
+        const subscriptionId = req.query.subscriptionId;
+        console.log(`Headers: ${JSON.stringify(req.headers)}`);
+        console.log(`Body: ${JSON.stringify(req.body)}`);
+        const subscription = await Subscription.findByPk(subscriptionId.toString());
+        if (!subscription) {
+            res.status(403);
+            res.send('Unknown subscription id');
+            return;
+        }
+        const googleUser = GoogleUser.findByPk(subscription.googleUserId);
+        if (!googleUser) {
+            res.status(403);
+            res.send('Unknown google user id');
+            return;
+        }
+        await checkAndRefreshAccessToken(googleUser);
+        await onReceiveNotification(subscription, googleUser);
+    } catch (e) {
+        console.error(e);
+    }
+
+    res.status(200);
+    res.json({
+        result: 'OK',
+    });
+}
+async function onReceiveNotification(subscription, googleUser) {
+    const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
 
     const listResponse = await drive.changes.list({ pageToken: subscription.startPageToken });
     console.log(`List Response: ${JSON.stringify(listResponse.data)}`);
     // scenario: reaching the end of this page
     if (listResponse.data.newStartPageToken) {
-        let subscriptions = user.subscriptions;
+        let subscriptions = googleUser.subscriptions;
         let targetSubscription = subscriptions.find(s => s.id === subscription.id);
         targetSubscription.startPageToken = listResponse.data.newStartPageToken;
         user.subscriptions = subscriptions;
-        await user.save();
+        await googleUser.save();
     }
 
     const latestChanges = await listResponse.data.changes.filter(change => change.type === 'file');
@@ -59,7 +92,7 @@ async function onReceiveNotification(subscription, user) {
                 };
 
                 // Send adaptive card to your channel in RingCentral App
-                await sendAdaptiveCardMessage(
+                await bot.sendAdaptiveCardMessage(
                     subscription.rcWebhookUri,
                     newCommentCardTemplate,
                     cardData);
@@ -81,7 +114,7 @@ async function onReceiveNotification(subscription, user) {
                 };
 
                 // Send adaptive card to your channel in RingCentral App
-                await sendAdaptiveCardMessage(
+                await bot.sendAdaptiveCardMessage(
                     subscription.rcWebhookUri,
                     newFileSharedWithMeCardTemplate,
                     cardData);
@@ -105,9 +138,9 @@ async function onReceiveInteractiveMessage(incomingMessageData, user, subscripti
             }
         });
         // notify user the result of the action in RingCentral App conversation
-        await sendTextMessage(subscription.rcWebhookUri, 'Comment Replied.');
+        await bot.sendTextMessage(subscription.rcWebhookUri, 'Comment Replied.');
     }
 }
 
-exports.onReceiveNotification = onReceiveNotification;
+exports.notification = notification;
 exports.onReceiveInteractiveMessage = onReceiveInteractiveMessage;

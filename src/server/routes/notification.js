@@ -1,11 +1,8 @@
-const { User } = require('../models/userModel');
+const { GoogleUser } = require('../models/googleUserModel');
+const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { getOAuthApp, checkAndRefreshAccessToken } = require('../lib/oauth');
-const constants = require('../lib/constants');
 const crypto = require('crypto');
 const { onReceiveNotification, onReceiveInteractiveMessage } = require('../handlers/notificationHandler');
-const { onAuthorize } = require('../handlers/authorizationHandler');
-const { sendTextMessage, sendAdaptiveCardMessage } = require('../lib/messageHelper');
-
 const authCardTemplate = require('../adaptiveCardPayloads/auth.json');
 //====INSTRUCTION====
 // Below methods is to receive 3rd party notification and format it into Adaptive Card and send to RingCentral App conversation
@@ -18,8 +15,8 @@ async function notification(req, res) {
   try {
     // Identify which user or subscription is relevant, normally by 3rd party webhook id or user id. 
     const userId = req.query.userId;
-    // console.log(`Headers: ${JSON.stringify(req.headers)}`);
-    const user = await User.findByPk(userId.toString());
+    console.log(`Headers: ${JSON.stringify(req.headers)}`);
+    const user = await GoogleUser.findByPk(userId.toString());
     if (!user) {
       res.status(403);
       res.send('Unknown user id');
@@ -58,12 +55,39 @@ async function interactiveMessages(req, res) {
   }
   const body = req.body;
   console.log(`Incoming interactive message: ${JSON.stringify(body, null, 2)}`);
-  if (!body.data || !body.user) {
+  if (!body.data || !body.user || !body.data.groupId || !body.data.botId) {
     res.status(400);
     res.send('Params error');
     return;
   }
-  let user = await User.findByPk(body.data.userId.toString());
+  const { botId, groupId } = body.data;
+  const bot = await Bot.findByPk(botId);
+  if (!bot) {
+    console.error(`Bot not found with id: ${botId}`);
+    res.status(400);
+    res.send('Bot not found');
+    return;
+  }
+
+  switch (body.data.actionType) {
+    case 'auth':
+      const oauthApp = getOAuthApp();
+      const authorizeUrl = `${oauthApp.code.getUri({
+        state: `botId=${botId}&groupId=${groupId}&rcUserId=${body.user.accountId}`
+      })}&access_type=offline`;
+      await bot.sendMessage(groupId, { text: `![:Person](${body.user.accountId}), please click link to authorize: ${authorizeUrl}` });
+      res.status(200);
+      res.send('OK');
+      return;
+  }
+
+  const user = await GoogleUser.findOne({
+    where: {
+      rcUserId: body.user.accountId
+    }
+  });
+
+
   if (!user) {
     res.status(403);
     console.log(`Unknown user id: ${body.data.userId}`);
@@ -81,50 +105,13 @@ async function interactiveMessages(req, res) {
   const oauth = getOAuthApp();
   const action = body.data.action;
   if (action === 'authorize') {
-    const buff = Buffer.from(body.data.token, 'base64');
-    const authQuery = buff.toString('ascii');
-    let token;
-    try {
-      // same call as 3rd party auth callback to return accessCode to exchange for accessToken
-      const callbackUri = `${process.env.APP_SERVER}${constants.route.forThirdParty.AUTH_CALLBACK}${authQuery}`;
-      token = await oauth.code.getToken(callbackUri);
-    } catch (e) {
-      console.error('Get token error');
-      await sendTextMessage(subscription.rcWebhookUri, `Hi ${body.user.firstName} ${body.user.lastName}, the token is invalid.`)
-      res.status(200);
-      res.send('ok');
-      return;
-    }
-    const { accessToken, refreshToken, expires } = token;
-    // Case: when target user exist as known by RingCentral App
-    if (user) {
-      user.accessToken = accessToken;
-      user.refreshToken = refreshToken;
-      user.tokenExpiredAt = expires;
-
-      if (!user.rcUserId) {
-        user.rcUserId = body.user.id.toString();
-      }
-      await user.save();
-    }
-    // Case: when target user doesn't exist as known by RingCentral App
-    else {
-      const userId = await onAuthorize(accessToken, refreshToken, expires);
-      user = await User.findByPk(userId);
-      user.rcUserId = body.user.id.toString();
-      await user.save();
-    }
-    await sendTextMessage(subscription.rcWebhookUri, `Hi ${body.user.firstName} ${body.user.lastName}, you have connected successfully. Please click action button again.`);
-    res.status(200);
-    res.send('ok');
-    return;
   }
   // if the action is not 'authorize', then it needs to make sure that authorization is valid for this user
   else {
     await checkAndRefreshAccessToken(user);
     // If an unknown user wants to perform actions, we want to authenticate and authorize first
     if (!user || !user.accessToken) {
-      await sendAdaptiveCardMessage(
+      await bot.sendAdaptiveCardMessage(
         subscription.rcWebhookUri,
         authCardTemplate,
         {
@@ -143,7 +130,7 @@ async function interactiveMessages(req, res) {
   } catch (e) {
     // Case: require auth
     if (e.statusCode === 401) {
-      await sendAdaptiveCardMessage(
+      await bot.sendAdaptiveCardMessage(
         subscription.rcWebhookUri,
         authCardTemplate,
         {

@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const { sequelize } = require('./sequelize');
 
 // Model for User data
-exports.User = sequelize.define('users', {
+exports.GoogleUser = sequelize.define('google-users', {
   id: {
     type: Sequelize.STRING,
     primaryKey: true,
@@ -24,8 +24,5 @@ exports.User = sequelize.define('users', {
   },
   tokenExpiredAt:{
     type: Sequelize.DATE
-  },
-  subscriptions:{
-    type: Sequelize.JSON
   }
 });

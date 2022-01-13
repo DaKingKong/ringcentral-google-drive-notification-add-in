@@ -1,4 +1,3 @@
-const constants = require('./constants');
 const ClientOAuth2 = require('client-oauth2');
 
 // oauthApp strategy is default to 'code' which use credentials to get accessCode, then exchange for accessToken and refreshToken.
@@ -8,7 +7,7 @@ const oauthApp = new ClientOAuth2({
     clientSecret: process.env.CLIENT_SECRET,
     accessTokenUri: process.env.ACCESS_TOKEN_URI,
     authorizationUri: process.env.AUTHORIZATION_URI,
-    redirectUri: `${process.env.APP_SERVER}${constants.route.forThirdParty.AUTH_CALLBACK}`,
+    redirectUri: `${process.env.RINGCENTRAL_CHATBOT_SERVER}/oauth-callback`,
     scopes: process.env.SCOPES.split(process.env.SCOPES_SEPARATOR)
 });
 
@@ -16,17 +15,20 @@ function getOAuthApp() {
     return oauthApp;
 }
 
-async function checkAndRefreshAccessToken(user) {
+async function checkAndRefreshAccessToken(googleUser) {
     const dateNow = new Date();
-    if (user && user.refreshToken && (user.tokenExpiredAt < dateNow || !user.accessToken)) {
-        console.log(`refreshing token...revoking ${user.accessToken}`);
-        const token = oauthApp.createToken(user.accessToken, user.refreshToken);
+    if (googleUser && googleUser.refreshToken && (googleUser.tokenExpiredAt < dateNow || !googleUser.accessToken)) {
+        console.log(`refreshing token...revoking ${googleUser.accessToken}`);
+        const token = oauthApp.createToken(googleUser.accessToken, googleUser.refreshToken);
         const { accessToken, refreshToken, expires } = await token.refresh();
-        console.log(`refreshing token...updating new token: ${user.accessToken}`);
-        user.accessToken = accessToken;
-        user.refreshToken = refreshToken;
-        user.tokenExpiredAt = expires;
-        await user.save();
+        console.log(`refreshing token...updating new token: ${googleUser.accessToken}`);
+        await googleUser.update(
+            {
+                accessToken,
+                refreshToken,
+                tokenExpiredAt: expires,
+            }
+        );
     }
 }
 

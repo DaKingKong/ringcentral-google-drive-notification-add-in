@@ -1,0 +1,36 @@
+{
+    "type": "AdaptiveCard",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.5",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "${title}",
+            "wrap": true,
+            "size": "Large",
+            "weight": "Bolder",
+            "$when": "${title!=null}"
+        },
+        {
+            "type": "TextBlock",
+            "text": "${text}",
+            "wrap": true,
+            "$when": "${text!=null}"
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "${buttonTitle}",
+                    "data": {
+                        "actionType": "${actionType}",
+                        "botId": "${botId}",
+                        "groupId": "${groupId}"
+                    }
+                }
+            ],
+            "$when": "${actionType!=null}"
+        }
+    ]
+}

@@ -1,17 +1,18 @@
-const constants = require('../lib/constants');
 const { generate } = require('shortid');
 const { google } = require('googleapis')
+const { Subscription } = require('../models/subscriptionModel');
+const { checkAndRefreshAccessToken } = require('../lib/oauth');
 
-async function onSubscribe(user, rcWebhookUri) {
+async function onSubscribe(googleUser, groupId, botId, fileId) {
+  await checkAndRefreshAccessToken(googleUser);
   // Generate an unique id
   // Note: notificationCallbackUrl here would contain our subscriptionId so that incoming notifications can be identified
   const subscriptionId = generate();
-  const notificationCallbackUrl = `${process.env.APP_SERVER}${constants.route.forThirdParty.NOTIFICATION}?userId=${user.id}&subscriptionId=${subscriptionId}`;
+  const notificationCallbackUrl = `${process.env.RINGCENTRAL_CHATBOT_SERVER}/notification?subscriptionId=${subscriptionId}`;
 
   // Step.1: [INSERT]Create a new webhook subscription on 3rd party platform with their API. For most cases, you would want to define what resources/events you want to subscribe to as well.
   const currentDate = new Date();//TODO: to be deleted
-  const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${user.accessToken}` } });
-
+  const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
   const tokenResponse = await drive.changes.getStartPageToken();
   const pageToken = tokenResponse.data.startPageToken;
   const watchResponse = await drive.changes.watch({
@@ -29,30 +30,18 @@ async function onSubscribe(user, rcWebhookUri) {
     }
   });
 
-  // Step.2: Get data from webhook creation response.
-  const webhookData = {
-    thirdPartySubscriptionId: watchResponse.data.id,
-    thirdPartyResourceId: watchResponse.data.resourceId
-  };   // [REPLACE] this with actual API call to 3rd party platform to create a webhook subscription
+  console.log(`Subscription created: ${JSON.stringify(watchResponse.data)}`);
 
   // Step.3: Create new subscription in DB. Note: If up till now, it's running correctly, most likely your RingCentral App conversation will receive message in the form of Adaptive Card (exception: Asana - more info: try asana demo with 'npx ringcentral-add-in-framework demo')
-  const newSubscription = {
+  await Subscription.create({
     id: subscriptionId,
-    rcWebhookUri: rcWebhookUri,
-    thirdPartyWebhookId: webhookData.thirdPartySubscriptionId,   // [REPLACE] this with webhook subscription id from 3rd party platform response
-    thirdPartyResourceId: webhookData.thirdPartyResourceId,
-    startPageToken: pageToken,
-    enabled: true
-  };
-
-  const userSubscriptions = user.subscriptions;
-  userSubscriptions.push(newSubscription);
-  user.subscriptions = userSubscriptions;
-  await user.save();
-
-
-  //If it's all good here, a Notification Card will be sent to your installed chat
-
+    googleSubscriptionId: watchResponse.data.id,
+    googleResourceId: watchResponse.data.resourceId,
+    groupId,
+    botId,
+    googleUserId: googleUser.id,
+    subscribedFileIds: []
+  });
 }
 
 async function onUnsubscribe(user, rcWebhookUri) {
@@ -72,9 +61,12 @@ async function onUnsubscribe(user, rcWebhookUri) {
     });
     console.log(`${targetToUnsubscribe.id} unsubscribed.`)
 
-    userSubscriptions.pop(targetToUnsubscribe);
+    const targetIndex = userSubscriptions.indexOf(targetToUnsubscribe);
+    userSubscriptions.splice(targetIndex, 1);
     user.subscriptions = userSubscriptions;
     await user.save();
+
+    return targetToUnsubscribe.id;
   }
 }
 

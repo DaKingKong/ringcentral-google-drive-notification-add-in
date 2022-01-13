@@ -1,0 +1,81 @@
+@startuml
+
+title Google Drive Notification Bot
+
+autonumber
+
+Database "Database" as db
+control "Bot" as b
+control "User" as u
+control "Google" as g
+
+group user trigger
+
+    group auth
+
+        u -> b: '@bot auth'
+        b --> u: auth link
+
+        u -> g: auth via link
+        g --> b: Google User info and token
+        b -->o db: save to db
+
+    end
+
+    group check group auths (ignore bots and guest users?)
+
+        u -> b: upon bot added to chat OR '@bot check auth'
+        b --> db: query for all users info
+        db --> b: return authed users info
+        b --> u: message to remind missing user to auth
+
+    end
+
+    group subscribe (event trigger ONLY. Do we want bot command trigger?)
+
+        u -> b: upload/share file (as attachment or file share link)
+        b --> g: confirm user permission and subscribe to file changes
+        g --> b: return file change subscription info
+        b -->o db: add file to sub list
+
+    end
+
+    group management - list AND unsub (file owner only?)
+
+        u -> b: '@bot list'
+        b --> db: fetch sub list
+        db --> b: return sub list
+        b --> u: sub list card with buttons
+
+        u -> b: unsub
+        b --> g: unsub
+        b --> db: remove sub from list
+
+    end
+
+    group Google operation within Jupiter
+
+        u -> b: Interactive Message action
+        b --> db: query user info
+        db --> b: return user info
+        b --> g: perform action
+        b --> u: return success/fail message
+
+    end
+end
+
+
+group Google trigger
+
+    group notification
+
+        g -> b: notification
+        b --> db: query for sub info
+        db --> b: return sub info w/ groupId
+        b --> u: send notification to group
+
+    end
+
+end
+
+@enduml
