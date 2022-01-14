@@ -50,7 +50,7 @@ exports.appExtend = (app) => {
           const { text: postText, groupId: postGroupId, creatorId } = event.message.body;
           console.log(`=====event.PostAdded=====${JSON.stringify(event)}`);
           if (postText) {
-            const googleFileLinkRegex = new RegExp('https://drive.google.com/file/d/.+?/view\\?usp=sharing', 'g');
+            const googleFileLinkRegex = new RegExp('https://.+google.com/.+?/d/.+?/.+\\?usp=sharing', 'g');
             const matches = postText.matchAll(googleFileLinkRegex);
             // Jupiter converts links to [{link}](link) format...so we'd have at least 2 occurrences for 1 link input
             const distinctMatches = [];
@@ -82,13 +82,19 @@ exports.appExtend = (app) => {
             }
 
             // if rc user has Google Account, subscribe to all files in links
-            const fileIdRegex = new RegExp('https://drive.google.com/file/d/(.*)/view\\?usp=sharing');
+            const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+\\?usp=sharing');
             for (const match of distinctMatches) {
               // Subscribe to the file - Note: Google file share link is https://drive.google.com/file/d/{fileId}/view\\?usp=sharing
               const fileId = match.match(fileIdRegex)[1];
-              await subscriptionHandler.onSubscribe(googleUser, postGroupId, botForPost.id, fileId);
+              console.log(`detecting file link with id ${fileId}`);
+              const isSuccessful = await subscriptionHandler.onSubscribe(googleUser, postGroupId, botForPost.id, fileId);
+              if (isSuccessful) {
+                await botForPost.sendMessage(postGroupId, { text: `Google Drive File Link detected. Comment events subscription created for file: ${fileId}.` });
+              }
+              else {
+                await botForPost.sendMessage(postGroupId, { text: `Google Drive File Link detected. Failed to find file: ${fileId}` });
+              }
             }
-            await botForPost.sendMessage(postGroupId, { text: `Google Drive file link(s) detected and subscription(s) added for File Comment events.` });
           }
           break;
       }

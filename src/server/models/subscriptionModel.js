@@ -25,7 +25,7 @@ exports.Subscription = sequelize.define('subscriptions', {
   startPageToken: {
     type: Sequelize.STRING,
   },
-  subscribedFileIds:{
-    type: Sequelize.ARRAY
+  subscriptions:{
+    type: Sequelize.JSON
   }
 });

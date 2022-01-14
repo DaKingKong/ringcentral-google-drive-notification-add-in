@@ -13,15 +13,6 @@ const authCardTemplate = require('../adaptiveCardPayloads/auth.json');
 // Add new card: Copy the whole payload in CARD PAYLOAD EDITOR from card designer and create a new .json file for it under `src/server/adaptiveCardPayloads` folder. Also remember to reference it.
 async function notification(req, res) {
   try {
-    // Identify which user or subscription is relevant, normally by 3rd party webhook id or user id. 
-    const userId = req.query.userId;
-    console.log(`Headers: ${JSON.stringify(req.headers)}`);
-    const user = await GoogleUser.findByPk(userId.toString());
-    if (!user) {
-      res.status(403);
-      res.send('Unknown user id');
-      return;
-    }
     const subscription = user.subscriptions.find(s => s.id == req.query.subscriptionId);
     if (!subscription) {
       res.status(403);
