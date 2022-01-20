@@ -2,21 +2,17 @@ const { getOAuthApp } = require('../lib/oauth');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { GoogleUser } = require('../models/googleUserModel');
 const { google } = require('googleapis')
-const axios = require('axios');
 const Op = require('sequelize').Op;
+const rcAPI = require('../lib/rcAPI');
+const subscriptionHandler = require('./subscriptionHandler');
 
 const { Template } = require('adaptivecards-templating');
 const simpleInfoCardTemplate = require('../adaptiveCardPayloads/simpleInfoCard.json');
 
-async function getUsersWithoutGoogleAccount(groupId, accessToken) {
-    const rcGroupInfo = await axios.get(`${process.env.RINGCENTRAL_SERVER}/restapi/v1.0/glip/groups/${groupId}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${accessToken}`
-        }
-    });
+async function getUsersWithoutGoogleAccount(groupId, accessToken, botId) {
+    const rcGroupInfo = await rcAPI.getGroupInfo(groupId, accessToken);
 
-    const membersInGroup = rcGroupInfo.data.members;
+    const membersInGroup = rcGroupInfo.members;
     const existingUsers = await GoogleUser.findAll({
         where: {
             rcUserId: {
@@ -26,19 +22,18 @@ async function getUsersWithoutGoogleAccount(groupId, accessToken) {
     });
 
     const existingRcUserIds = existingUsers.map(u => u.rcUserId);
-    const missingRcUserIds = membersInGroup.filter(u => !existingRcUserIds.includes(u));
+    const missingRcUserIds = membersInGroup.filter(u => !existingRcUserIds.includes(u) && u != botId);
 
     return missingRcUserIds;
 }
 
-function getAuthCard(botId, groupId) {
+function getAuthCard(botId) {
     const template = new Template(simpleInfoCardTemplate);
     const cardData = {
         title: 'Click below button to generate your auth link:',
         actionType: 'auth',
         buttonTitle: 'Generate Link',
-        botId,
-        groupId
+        botId
     }
     const card = template.expand({
         $root: cardData
@@ -49,7 +44,6 @@ function getAuthCard(botId, groupId) {
 async function oauthCallback(req, res) {
     const queryParams = new URLSearchParams(req.query.state)
     const botId = queryParams.get('botId');
-    const groupId = queryParams.get('groupId');
     const rcUserId = queryParams.get('rcUserId');
     const oauthApp = getOAuthApp();
     const bot = await Bot.findByPk(botId);
@@ -75,30 +69,35 @@ async function oauthCallback(req, res) {
         const googleUserInfoResponse = { id: userData.permissionId, email: userData.emailAddress, name: userData.displayName }   // [REPLACE] this line with actual call
         const googleUserId = googleUserInfoResponse.id; // [REPLACE] this line with user id from actual response
 
+        // Create/Find DM conversation to the RC user
+        const createGroupResponse = await rcAPI.createConversation([rcUserId], bot.token.access_token);
+
         // Find if it's existing user in our database
         let user = await GoogleUser.findByPk(googleUserId);
         // Step.2: If user doesn't exist, we want to create a new one
         if (!user) {
             user = await GoogleUser.create({
                 id: googleUserId,
+                botId,
                 rcUserId: rcUserId,
                 accessToken: accessToken,
                 refreshToken: refreshToken,
                 tokenExpiredAt: expires,
                 email: googleUserInfoResponse.email, // [REPLACE] this with actual user email in response, [DELETE] this line if user info doesn't contain email
-                name: googleUserInfoResponse.name, // [REPLACE] this with actual user name in response, [DELETE] this line if user info doesn't contain name
+                name: googleUserInfoResponse.name, // [REPLACE] this with actual user name in response, [DELETE] this line if user info doesn't contain name,
+                rcDMGroupId: createGroupResponse.id,
+                isReceiveNewFile: true
             });
 
-            const rcUserInfo = await axios.get(`${process.env.RINGCENTRAL_SERVER}/restapi/v1.0/glip/persons/${rcUserId}`, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${bot.token.access_token}`
-                }
-            });
-            await bot.sendMessage(groupId, { text: `Authorized Google Account ${googleUserInfoResponse.email} for ${rcUserInfo.data.firstName} ${rcUserInfo.data.lastName}.` });
+            const rcUserInfo = await rcAPI.getUserInfo(rcUserId, bot.token.access_token);
+
+            // create a global subscription for this google user
+            await subscriptionHandler.createGlobalSubscription(user, botId);
+            
+            await bot.sendMessage(user.rcDMGroupId, { text: `Authorized Google Account ${googleUserInfoResponse.email} for ${rcUserInfo.firstName} ${rcUserInfo.lastName}.` });
         }
         else {
-            await bot.sendMessage(groupId, { text: `Google Account ${googleUserInfoResponse.email} already exists.` });
+            await bot.sendMessage(user.rcDMGroupId, { text: `Google Account ${googleUserInfoResponse.email} already exists.` });
         }
 
     } catch (e) {

@@ -2,16 +2,11 @@ const Sequelize = require('sequelize');
 const { sequelize } = require('./sequelize');
 
 // Model for User data
+// Note: Subscription is co-identified by groupId and googleUserId and manages one file 
 exports.Subscription = sequelize.define('subscriptions', {
   id: {
     type: Sequelize.STRING,
-    primaryKey: true,
-  },
-  googleSubscriptionId: {
-    type: Sequelize.STRING,
-  },
-  googleResourceId: {
-    type: Sequelize.STRING,
+    primaryKey: true
   },
   groupId: {
     type: Sequelize.STRING,
@@ -22,10 +17,7 @@ exports.Subscription = sequelize.define('subscriptions', {
   googleUserId: {
     type: Sequelize.STRING,
   },
-  startPageToken: {
+  fileId: {
     type: Sequelize.STRING,
-  },
-  subscriptions:{
-    type: Sequelize.JSON
   }
 });
