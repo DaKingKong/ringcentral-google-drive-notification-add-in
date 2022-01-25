@@ -1,5 +1,6 @@
 const { google } = require('googleapis')
 const { Subscription } = require('../models/subscriptionModel');
+const { GoogleFile } = require('../models/googleFileModel');
 const { checkAndRefreshAccessToken } = require('../lib/oauth');
 const { generate } = require('shortid');
 
@@ -41,9 +42,18 @@ async function addFileSubscription(googleUser, groupId, botId, fileId) {
   await checkAndRefreshAccessToken(googleUser);
   const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
 
-  const checkFileResponse = await drive.files.get({ fileId, fields: 'id' });
+  const checkFileResponse = await drive.files.get({ fileId, fields: 'id, name, iconLink' });
   if (!checkFileResponse.data.id) {
     return false;
+  }
+
+  const existingFile = await GoogleFile.findByPk(checkFileResponse.data.id);
+  if (!existingFile) {
+    await GoogleFile.create({
+      id: checkFileResponse.data.id,
+      name: checkFileResponse.data.name,
+      iconLink: checkFileResponse.data.iconLink
+    });
   }
 
   await Subscription.create({
@@ -51,17 +61,51 @@ async function addFileSubscription(googleUser, groupId, botId, fileId) {
     groupId,
     botId,
     googleUserId: googleUser.id,
-    fileId
+    fileId,
+    isEnabled: 1
   });
 
   return true;
 }
 
-async function removeFileFromSubscription(googleUserId, botId, groupId, fileId) {
-  console.log(`unsubscribing ${fileId}`)
+async function pauseSubscription(botId, groupId, fileId) {
+  console.log(`pausing ${fileId}, with bot: ${botId} and group: ${groupId}`)
+  const subscription = await Subscription.findOne({
+    where: {
+      botId,
+      groupId,
+      fileId
+    }
+  })
+  if (!subscription) {
+    console.error('subscription not found.')
+  }
+  await subscription.update({
+    isEnabled: false
+  });
+}
+
+async function resumeSubscription(botId, groupId, fileId) {
+  console.log(`resuming ${fileId}, with bot: ${botId} and group: ${groupId}`)
+  const subscription = await Subscription.findOne({
+    where: {
+      botId,
+      groupId,
+      fileId
+    }
+  })
+  if (!subscription) {
+    console.error('subscription not found.')
+  }
+  await subscription.update({
+    isEnabled: true
+  });
+}
+
+async function removeFileFromSubscription(botId, groupId, fileId) {
+  console.log(`unsubscribing ${fileId}, with bot: ${botId} and group: ${groupId}`)
   await Subscription.destroy({
     where: {
-      googleUserId,
       botId,
       groupId,
       fileId
@@ -79,4 +123,6 @@ async function removeFileFromSubscription(googleUserId, botId, groupId, fileId) 
 
 exports.createGlobalSubscription = createGlobalSubscription;
 exports.addFileSubscription = addFileSubscription;
+exports.pauseSubscription = pauseSubscription;
+exports.resumeSubscription = resumeSubscription;
 exports.removeFileFromSubscription = removeFileFromSubscription;

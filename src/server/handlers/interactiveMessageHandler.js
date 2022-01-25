@@ -1,13 +1,15 @@
 const { google } = require('googleapis')
 const crypto = require('crypto');
 const { GoogleUser } = require('../models/googleUserModel');
+const { GoogleFile } = require('../models/googleFileModel');
 const { Subscription } = require('../models/subscriptionModel');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { getOAuthApp } = require('../lib/oauth');
 const { Template } = require('adaptivecards-templating');
+const rcAPI = require('../lib/rcAPI');
 
 const subscriptionHandler = require('./subscriptionHandler');
-const { readlink } = require('fs');
+const subscriptionListCardTemplateJson = require('../adaptiveCardPayloads/subscriptionListCard.json');
 
 async function interactiveMessages(req, res) {
     try {
@@ -80,6 +82,32 @@ async function interactiveMessages(req, res) {
                     }
                 }
                 break;
+            case 'pause':
+                googleUser = await GoogleUser.findOne({
+                    where: {
+                        rcUserId: body.user.accountId
+                    }
+                });
+                if (!googleUser) {
+                    await bot.sendMessage(body.conversation.id, { text: "Google Account not found." });
+                    break;
+                }
+                await subscriptionHandler.pauseSubscription(bot.id, body.data.groupId, body.data.fileId);
+                await bot.sendMessage(body.conversation.id, { text: `Paused file: ${body.data.fileId}` });
+                break;
+            case 'resume':
+                googleUser = await GoogleUser.findOne({
+                    where: {
+                        rcUserId: body.user.accountId
+                    }
+                });
+                if (!googleUser) {
+                    await bot.sendMessage(body.conversation.id, { text: "Google Account not found." });
+                    break;
+                }
+                await subscriptionHandler.resumeSubscription(bot.id, body.data.groupId, body.data.fileId);
+                await bot.sendMessage(body.conversation.id, { text: `Resumed file: ${body.data.fileId}` });
+                break;
             case 'unsubscribe':
                 googleUser = await GoogleUser.findOne({
                     where: {
@@ -90,13 +118,54 @@ async function interactiveMessages(req, res) {
                     await bot.sendMessage(body.conversation.id, { text: "Google Account not found." });
                     break;
                 }
-                console.log(body.data.fileId)
-                await subscriptionHandler.removeFileFromSubscription(googleUser.id, bot.id, body.data.groupId, body.data.fileId);
+                await subscriptionHandler.removeFileFromSubscription(bot.id, body.data.groupId, body.data.fileId);
                 await bot.sendMessage(body.conversation.id, { text: `Unsubscribed file: ${body.data.fileId}` });
                 break;
+            case 'activeSubList':
+            case 'pausedSubList':
+                googleUser = await GoogleUser.findOne({
+                    where: {
+                        rcUserId: body.user.accountId
+                    }
+                });
+                if (!googleUser) {
+                    await botForMessage.sendMessage(cmdGroup.id, { text: "Google Account not found." });
+                }
+
+                const subscriptionListCardTemplate = new Template(subscriptionListCardTemplateJson);
+                const subscriptions = await Subscription.findAll({
+                    where: {
+                        botId,
+                        groupId: body.data.groupId,
+                        isEnabled: body.data.actionType === 'activeSubList'
+                    }
+                });
+                let subscriptionList = [];;
+                for (const subscription of subscriptions) {
+                    const fileId = subscription.fileId;
+                    const file = await GoogleFile.findByPk(fileId);
+                    if (file) {
+                        subscriptionList.push({
+                            iconLink: file.iconLink,
+                            fileName: file.name,
+                            fileId,
+                            botId: subscription.botId,
+                            groupId: subscription.groupId,
+                            subscriptionState: body.data.actionType
+                        });
+                    }
+                }
+
+                const subscriptionListData = {
+                    listType: body.data.actionType,
+                    subscriptionList
+                }
+                const subscriptionListCard = subscriptionListCardTemplate.expand({
+                    $root: subscriptionListData
+                });
+                await bot.sendAdaptiveCard(body.data.groupId, subscriptionListCard);
+                break;
         }
-
-
     }
     catch (e) {
         console.error(e);

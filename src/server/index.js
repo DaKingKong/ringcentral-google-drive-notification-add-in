@@ -7,6 +7,7 @@ const notificationHandler = require('./handlers/notificationHandler');
 const interactiveMessageHandler = require('./handlers/interactiveMessageHandler');
 
 const { GoogleUser } = require('./models/googleUserModel');
+const { GoogleFile } = require('./models/googleFileModel');
 const { Subscription } = require('./models/subscriptionModel');
 
 // extends or override express app as you need
@@ -17,6 +18,7 @@ exports.appExtend = (app) => {
     botRoute: '/bot', // optional
     models: { // optional
       GoogleUser,
+      GoogleFile,
       Subscription
     }
   }

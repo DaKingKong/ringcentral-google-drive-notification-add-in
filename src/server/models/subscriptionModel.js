@@ -19,5 +19,8 @@ exports.Subscription = sequelize.define('subscriptions', {
   },
   fileId: {
     type: Sequelize.STRING,
+  },
+  isEnabled: {
+    type: Sequelize.BOOLEAN
   }
 });

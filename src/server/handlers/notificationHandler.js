@@ -69,7 +69,8 @@ async function onReceiveNotification(googleUser) {
             const subscriptions = await Subscription.findAll({
                 where: {
                     fileId,
-                    googleUserId: googleUser.id
+                    googleUserId: googleUser.id,
+                    isEnabled: true
                 }
             })
             // Ignore file if there's no subscription

@@ -6,7 +6,14 @@
         {
             "type": "TextBlock",
             "wrap": true,
-            "text": "My subscriptions in this chat:"
+            "text": "Active subscriptions in this chat:",
+            "$when": "${listType==\"activeSubList\"}"
+        },
+        {
+            "type": "TextBlock",
+            "wrap": true,
+            "text": "Paused subscriptions in this chat:",
+            "$when": "${listType==\"pausedSubList\"}"
         },
         {
             "type": "ColumnSet",
@@ -36,7 +43,54 @@
                 },
                 {
                     "type": "Column",
-                    "width": "stretch",
+                    "width": "auto",
+                    "$when": "${subscriptionState==\"activeSubList\"}",
+                    "items": [
+                        {
+                            "type": "ActionSet",
+                            "actions": [
+                                {
+                                    "type": "Action.Submit",
+                                    "title": "Pause",
+                                    "data": {
+                                        "actionType": "pause",
+                                        "botId": "${botId}",
+                                        "fileId": "${fileId}",
+                                        "groupId": "${groupId}"
+                                    },
+                                    "style": "destructive"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "$when": "${subscriptionState==\"pausedSubList\"}",
+                    "items": [
+                        {
+                            "type": "ActionSet",
+                            "actions": [
+                                {
+                                    "type": "Action.Submit",
+                                    "title": "Resume",
+                                    "data": {
+                                        "actionType": "resume",
+                                        "botId": "${botId}",
+                                        "fileId": "${fileId}",
+                                        "groupId": "${groupId}"
+                                    },
+                                    "style": "positive"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "Column",
+                    "width": "auto",
+                    "$when": "${subscriptionState==\"pausedSubList\"}",
                     "items": [
                         {
                             "type": "ActionSet",
@@ -49,7 +103,8 @@
                                         "botId": "${botId}",
                                         "fileId": "${fileId}",
                                         "groupId": "${groupId}"
-                                    }
+                                    },
+                                    "style": "destructive"
                                 }
                             ]
                         }
