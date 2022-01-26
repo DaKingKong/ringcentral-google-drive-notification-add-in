@@ -9,7 +9,7 @@ const subscriptionHandler = require('./subscriptionHandler');
 const { Template } = require('adaptivecards-templating');
 const simpleInfoCardTemplate = require('../adaptiveCardPayloads/simpleInfoCard.json');
 
-async function getUsersWithoutGoogleAccount(groupId, accessToken, botId) {
+async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken, botId) {
     const rcGroupInfo = await rcAPI.getGroupInfo(groupId, accessToken);
 
     const membersInGroup = rcGroupInfo.members;
@@ -21,10 +21,15 @@ async function getUsersWithoutGoogleAccount(groupId, accessToken, botId) {
         }
     });
 
-    const existingRcUserIds = existingUsers.map(u => u.rcUserId);
-    const missingRcUserIds = membersInGroup.filter(u => !existingRcUserIds.includes(u) && u != botId);
+    const rcUserIdsWithGoogleAccount = existingUsers.map(u => u.rcUserId);
+    const rcUserIdsWithoutGoogleAccount = membersInGroup.filter(u => !rcUserIdsWithGoogleAccount.includes(u) && u != botId);
 
-    return missingRcUserIds;
+    const inGroupUserInfo = {
+        rcUserIdsWithGoogleAccount,
+        rcUserIdsWithoutGoogleAccount
+    }
+
+    return inGroupUserInfo;
 }
 
 function getAuthCard(botId) {
@@ -93,7 +98,7 @@ async function oauthCallback(req, res) {
 
             // create a global subscription for this google user
             await subscriptionHandler.createGlobalSubscription(user, botId);
-            
+
             await bot.sendMessage(user.rcDMGroupId, { text: `Authorized Google Account ${googleUserInfoResponse.email} for ${rcUserInfo.firstName} ${rcUserInfo.lastName}.` });
         }
         else {
@@ -109,6 +114,21 @@ async function oauthCallback(req, res) {
     res.send('<!doctype><html><body><script>close()</script></body></html>')
 };
 
-exports.getUsersWithoutGoogleAccount = getUsersWithoutGoogleAccount;
+async function checkUserFileAccess(googleUser, fileId) {
+    try {
+        const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
+        await drive.files.get({ fileId, fields: 'id' });
+        return true;
+    }
+    catch (e) {
+        // google user cannot find the file => no access
+        if (e.response.status === 404) {
+            return false;
+        }
+    }
+}
+
+exports.getInGroupRcUserGoogleAccountInfo = getInGroupRcUserGoogleAccountInfo;
 exports.getAuthCard = getAuthCard;
 exports.oauthCallback = oauthCallback;
+exports.checkUserFileAccess = checkUserFileAccess;

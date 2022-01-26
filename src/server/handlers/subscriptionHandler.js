@@ -42,9 +42,28 @@ async function addFileSubscription(googleUser, groupId, botId, fileId) {
   await checkAndRefreshAccessToken(googleUser);
   const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
 
+  const duplicatedFileInGroup = await Subscription.findOne({
+    where:{
+      groupId,
+      botId,
+      fileId
+    }
+  })
+
+  if(duplicatedFileInGroup)
+  {
+    if(!duplicatedFileInGroup.isEnabled)
+    {
+      await resumeSubscription(botId, groupId, fileId);
+      return 'Resumed';
+    }
+    
+    return 'Duplicated';
+  }
+
   const checkFileResponse = await drive.files.get({ fileId, fields: 'id, name, iconLink' });
   if (!checkFileResponse.data.id) {
-    return false;
+    return 'NotFound';
   }
 
   const existingFile = await GoogleFile.findByPk(checkFileResponse.data.id);
@@ -65,7 +84,7 @@ async function addFileSubscription(googleUser, groupId, botId, fileId) {
     isEnabled: 1
   });
 
-  return true;
+  return 'OK';
 }
 
 async function pauseSubscription(botId, groupId, fileId) {

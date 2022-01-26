@@ -1,6 +1,5 @@
 
 const { default: Bot } = require('ringcentral-chatbot-core/dist/models/Bot');
-const subscriptionHandler = require('./subscriptionHandler');
 const authorizationHandler = require('./authorizationHandler');
 const { GoogleUser } = require('../models/googleUserModel');
 const { Template } = require('adaptivecards-templating');
@@ -52,19 +51,15 @@ const botHandler = async event => {
                 console.log(`=====event.PostAdded=====${JSON.stringify(event)}`);
                 if (postText) {
                     const googleFileLinkRegex = new RegExp('https://.+google.com/.+?/d/.+?/.+\\?usp=sharing', 'g');
+                    // Note: Jupiter converts links to [{link}](link) format...so we'd have at least 2 occurrences for 1 link input
                     const matches = postText.matchAll(googleFileLinkRegex);
-                    // Jupiter converts links to [{link}](link) format...so we'd have at least 2 occurrences for 1 link input
-                    const distinctMatches = [];
-                    for (const match of matches) {
-                        if (!distinctMatches.includes(match[0])) {
-                            distinctMatches.push(match[0]);
-                        }
-                    }
-
-                    if (distinctMatches.length === 0) {
+                    // Note: We want to limit the detection for only the 1st link. The reason is to reduce noise, because one link would generate quite some messages already
+                    const firstMatch = matches.next().value;
+                    if (!firstMatch) {
                         break;
                     }
 
+                    const googleFileLinkInPost = firstMatch[0];
                     const botForPost = await Bot.findByPk(event.message.ownerId);
 
                     // if any Google file link detected, check if this GoogleUser exists
@@ -83,31 +78,36 @@ const botHandler = async event => {
                     }
 
                     // check if all team members have Google auth
-                    const userIdsWithoutGoogleAccount = await authorizationHandler.getUsersWithoutGoogleAccount(postGroupId, botForPost.token.access_token, botForPost.id);
+                    const inGroupUserInfo = await authorizationHandler.getInGroupRcUserGoogleAccountInfo(postGroupId, botForPost.token.access_token, botForPost.id);
+                    const userIdsWithoutGoogleAccount = inGroupUserInfo.rcUserIdsWithoutGoogleAccount;
+                    const userIdsWithGoogleAccount = inGroupUserInfo.rcUserIdsWithGoogleAccount;
                     if (userIdsWithoutGoogleAccount.length > 0) {
-                        let mentionMessage = 'Please use below card button to authorize your Google Account. '
+                        let noAccountMessage = 'Please use below card button to authorize your Google Account. '
                         for (const userId of userIdsWithoutGoogleAccount) {
-                            mentionMessage += `![:Person](${userId}) `;
+                            noAccountMessage += `![:Person](${userId}) `;
                         }
-                        console.log(mentionMessage);
-                        await botForPost.sendMessage(postGroupId, { text: mentionMessage });
+                        await botForPost.sendMessage(postGroupId, { text: noAccountMessage });
                         const authCard = authorizationHandler.getAuthCard(botForPost.id, postGroupId);
                         await botForPost.sendAdaptiveCard(postGroupId, authCard);
                     }
 
-                    // if rc user has Google Account, subscribe to all files in links
-                    const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+\\?usp=sharing');
-                    for (const match of distinctMatches) {
-                        // Subscribe to the file - Note: A Google file share link example could be https://drive.google.com/file/d/{fileId}/view?usp=sharing
-                        const fileId = match.match(fileIdRegex)[1];
-                        console.log(`detecting file link with id ${fileId}`);
-                        const isSuccessful = await subscriptionHandler.addFileSubscription(googleUserForPost, postGroupId, botForPost.id, fileId);
-                        if (isSuccessful) {
-                            await botForPost.sendMessage(postGroupId, { text: `Google Drive File Link detected. Comment events subscription created for file: ${fileId}.` });
+                    const rcUserIdsWithoutAccess = [];
+                    for (const id of userIdsWithGoogleAccount) {
+                        // if rc user has Google Account, subscribe to all files in links
+                        const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+\\?usp=sharing');
+                        const fileId = googleFileLinkInPost.match(fileIdRegex)[1];
+                        const hasAccess = await authorizationHandler.checkUserFileAccess(googleUserForPost, fileId);
+                        if (!hasAccess) {
+                            rcUserIdsWithoutAccess.push(id);
                         }
-                        else {
-                            await botForPost.sendMessage(postGroupId, { text: `Google Drive File Link detected. Failed to find file: ${fileId}` });
+                    }
+
+                    if (rcUserIdsWithoutAccess.length > 0){
+                        let noAccessMessage = 'Following users don\'t have access to above file: '
+                        for (const userId of rcUserIdsWithoutAccess) {
+                            noAccessMessage += `![:Person](${userId}) `;
                         }
+                        await botForPost.sendMessage(postGroupId, { text: noAccessMessage });
                     }
                 }
                 break;

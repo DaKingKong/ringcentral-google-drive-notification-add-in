@@ -72,12 +72,20 @@ async function interactiveMessages(req, res) {
                     if (match) {
                         //subscribe
                         const fileId = match[1];
-                        const isSuccessful = await subscriptionHandler.addFileSubscription(googleUser, body.conversation.id, botId, fileId);
-                        if (isSuccessful) {
-                            await bot.sendMessage(body.conversation.id, { text: `Comment events subscription created for file: ${fileId}.` });
-                        }
-                        else {
-                            await bot.sendMessage(body.conversation.id, { text: `Failed to find file: ${fileId}` });
+                        const subscriptionFileState = await subscriptionHandler.addFileSubscription(googleUser, body.conversation.id, botId, fileId);
+                        switch (subscriptionFileState) {
+                            case 'OK':
+                                await bot.sendMessage(body.conversation.id, { text: `Subscription created. Now watching new comment events for file: ${fileId}.` });
+                                break;
+                            case 'Duplicated':
+                                await bot.sendMessage(body.conversation.id, { text: `Failed to create. Subscription for file: ${fileId} already exists.` });
+                                break;
+                            case 'Resumed':
+                                await bot.sendMessage(body.conversation.id, { text: `Subscription resumed. Subscription for file: ${fileId} RESUMED.` });
+                                break;
+                            case 'NotFound':
+                                await bot.sendMessage(body.conversation.id, { text: `Failed to create. Unable to find file: ${fileId}` });
+                                break;
                         }
                     }
                 }
