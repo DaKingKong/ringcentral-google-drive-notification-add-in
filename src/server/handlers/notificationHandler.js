@@ -8,6 +8,7 @@ const { Template } = require('adaptivecards-templating');
 
 const newCommentCardTemplate = require('../adaptiveCardPayloads/newCommentCard.json');
 const newFileSharedWithMeCardTemplate = require('../adaptiveCardPayloads/newFileShareWithMeCard.json');
+const commentDigestCardTemplate = require('../adaptiveCardPayloads/commentDigestCard.json');
 
 const NEW_EVENT_TIME_THRESHOLD_IN_SECONDS = 10
 
@@ -84,9 +85,9 @@ async function onReceiveNotification(googleUser) {
                 const commentData = commentResponse.data.comments[0];
                 // NewComment = Comment with no Reply
                 const isNewComment = commentData.replies.length === 0;
+                console.log('drive.comments.get:', JSON.stringify(commentData, null, 2));
                 if (isEventNew(change.time, commentData.modifiedTime) && isNewComment && !commentData.author.me) {
                     console.log('===========NEW COMMENT============');
-                    console.log('drive.comments.get:', commentData);
                     const cardData =
                     {
                         userAvatar: commentData.author.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
@@ -103,13 +104,27 @@ async function onReceiveNotification(googleUser) {
                         commentId: commentData.id,
                         fileId: fileId
                     };
-
-                    const template = new Template(newCommentCardTemplate);
-                    const card = template.expand({
-                        $root: cardData
-                    });
-                    // Send adaptive card to your channel in RingCentral App
-                    await bot.sendAdaptiveCard(subscription.groupId, card);
+                    if(subscription.state === 'muted')
+                    {
+                        continue;
+                    }
+                    else if(subscription.state === 'realtime')
+                    {
+                        const template = new Template(newCommentCardTemplate);
+                        const card = template.expand({
+                            $root: cardData
+                        });
+                        // Send adaptive card to your channel in RingCentral App
+                        await bot.sendAdaptiveCard(subscription.groupId, card);
+                    }
+                    // daily, weekly -> cache
+                    else{
+                        const cachedInfo = subscription.cachedInfo;
+                        cachedInfo.commentNotifications.push(cardData);
+                        await subscription.update({
+                            cachedInfo
+                        });
+                    }
                 }
             }
         }
@@ -139,4 +154,20 @@ async function onReceiveNotification(googleUser) {
     }
 }
 
+async function SendDigestNotification(subscription) {
+    const cardData =
+    {
+        subscriptionState: subscription.state,
+        commentNotifications: subscription.cachedInfo.commentNotifications
+    }
+
+    const template = new Template(commentDigestCardTemplate);
+    const card = template.expand({
+        $root: cardData
+    });
+    // Send adaptive card to your channel in RingCentral App
+    await bot.sendAdaptiveCard(subscription.groupId, card);
+}
+
 exports.notification = notification;
+exports.SendDigestNotification = SendDigestNotification;

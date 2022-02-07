@@ -20,7 +20,18 @@ exports.Subscription = sequelize.define('subscriptions', {
   fileId: {
     type: Sequelize.STRING,
   },
-  isEnabled: {
-    type: Sequelize.BOOLEAN
+  // realtime, daily, weekly, muted
+  state: {
+    type: Sequelize.STRING,
+  },
+  stateBeforeMuted: {
+    type: Sequelize.STRING,
+  },
+  startTime: {
+    type: Sequelize.DATE,
+  },
+  // cachedInfo = commentNotifications
+  cachedInfo:{
+    type: Sequelize.JSON
   }
 });

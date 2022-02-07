@@ -43,21 +43,19 @@ async function addFileSubscription(googleUser, groupId, botId, fileId) {
   const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
 
   const duplicatedFileInGroup = await Subscription.findOne({
-    where:{
+    where: {
       groupId,
       botId,
       fileId
     }
   })
 
-  if(duplicatedFileInGroup)
-  {
-    if(!duplicatedFileInGroup.isEnabled)
-    {
+  if (duplicatedFileInGroup) {
+    if (duplicatedFileInGroup.state === 'muted') {
       await resumeSubscription(botId, groupId, fileId);
       return 'Resumed';
     }
-    
+
     return 'Duplicated';
   }
 
@@ -81,13 +79,32 @@ async function addFileSubscription(googleUser, groupId, botId, fileId) {
     botId,
     googleUserId: googleUser.id,
     fileId,
-    isEnabled: 1
+    state: 'realtime'
   });
 
   return 'OK';
 }
 
-async function pauseSubscription(botId, groupId, fileId) {
+async function setSubscriptionStateAndStartTime(botId, groupId, fileId, state, startTime) {
+  console.log(`change ${fileId}, with bot: ${botId} and group: ${groupId}`)
+  const subscription = await Subscription.findOne({
+    where: {
+      botId,
+      groupId,
+      fileId
+    }
+  })
+  if (!subscription) {
+    console.error('subscription not found.')
+  }
+
+  await subscription.update({
+    state,
+    startTime
+  });
+}
+
+async function muteSubscription(botId, groupId, fileId) {
   console.log(`pausing ${fileId}, with bot: ${botId} and group: ${groupId}`)
   const subscription = await Subscription.findOne({
     where: {
@@ -99,8 +116,10 @@ async function pauseSubscription(botId, groupId, fileId) {
   if (!subscription) {
     console.error('subscription not found.')
   }
+  const state = subscription.state;
   await subscription.update({
-    isEnabled: false
+    state: 'muted',
+    stateBeforeMuted: state
   });
 }
 
@@ -116,8 +135,9 @@ async function resumeSubscription(botId, groupId, fileId) {
   if (!subscription) {
     console.error('subscription not found.')
   }
+  const stateBeforeMuted = subscription.stateBeforeMuted;
   await subscription.update({
-    isEnabled: true
+    state: stateBeforeMuted
   });
 }
 
@@ -142,6 +162,6 @@ async function removeFileFromSubscription(botId, groupId, fileId) {
 
 exports.createGlobalSubscription = createGlobalSubscription;
 exports.addFileSubscription = addFileSubscription;
-exports.pauseSubscription = pauseSubscription;
+exports.muteSubscription = muteSubscription;
 exports.resumeSubscription = resumeSubscription;
 exports.removeFileFromSubscription = removeFileFromSubscription;

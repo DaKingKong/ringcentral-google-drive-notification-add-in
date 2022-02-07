@@ -11,6 +11,26 @@
             "isRequired": true
         },
         {
+            "type": "Input.ChoiceSet",
+            "choices": [
+                {
+                    "title": "Realtime",
+                    "value": "realtime"
+                },
+                {
+                    "title": "Daily",
+                    "value": "daily"
+                },
+                {
+                    "title": "Weekly",
+                    "value": "weekly"
+                }
+            ],
+            "placeholder": "Subscription Mode",
+            "id": "state",
+            "isRequired": true
+        },
+        {
             "type": "ActionSet",
             "actions": [
                 {

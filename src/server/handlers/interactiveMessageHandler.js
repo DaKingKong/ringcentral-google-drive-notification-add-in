@@ -5,6 +5,7 @@ const { GoogleFile } = require('../models/googleFileModel');
 const { Subscription } = require('../models/subscriptionModel');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { getOAuthApp } = require('../lib/oauth');
+const Op = require('sequelize').Op;
 const { Template } = require('adaptivecards-templating');
 const rcAPI = require('../lib/rcAPI');
 
@@ -90,7 +91,7 @@ async function interactiveMessages(req, res) {
                     }
                 }
                 break;
-            case 'pause':
+            case 'mute':
                 googleUser = await GoogleUser.findOne({
                     where: {
                         rcUserId: body.user.accountId
@@ -100,8 +101,8 @@ async function interactiveMessages(req, res) {
                     await bot.sendMessage(body.conversation.id, { text: "Google Account not found." });
                     break;
                 }
-                await subscriptionHandler.pauseSubscription(bot.id, body.data.groupId, body.data.fileId);
-                await bot.sendMessage(body.conversation.id, { text: `Paused file: ${body.data.fileId}` });
+                await subscriptionHandler.muteSubscription(bot.id, body.data.groupId, body.data.fileId);
+                await bot.sendMessage(body.conversation.id, { text: `Muted file: ${body.data.fileId}` });
                 break;
             case 'resume':
                 googleUser = await GoogleUser.findOne({
@@ -130,7 +131,7 @@ async function interactiveMessages(req, res) {
                 await bot.sendMessage(body.conversation.id, { text: `Unsubscribed file: ${body.data.fileId}` });
                 break;
             case 'activeSubList':
-            case 'pausedSubList':
+            case 'mutedSubList':
                 googleUser = await GoogleUser.findOne({
                     where: {
                         rcUserId: body.user.accountId
@@ -141,11 +142,14 @@ async function interactiveMessages(req, res) {
                 }
 
                 const subscriptionListCardTemplate = new Template(subscriptionListCardTemplateJson);
+                // stateCondition: If 'mutedSubList', then return all 'muted' subs. If not, then return all non-'muted' subs
+                // [Op.ne]: 'muted' -> != 'muted'
+                const stateCondition = body.data.actionType === 'mutedSubList' ? 'muted' : { [Op.ne]: 'muted' };
                 const subscriptions = await Subscription.findAll({
                     where: {
                         botId,
                         groupId: body.data.groupId,
-                        isEnabled: body.data.actionType === 'activeSubList'
+                        state: stateCondition
                     }
                 });
                 let subscriptionList = [];;

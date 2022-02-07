@@ -12,8 +12,8 @@
         {
             "type": "TextBlock",
             "wrap": true,
-            "text": "Paused subscriptions in this chat:",
-            "$when": "${listType==\"pausedSubList\"}"
+            "text": "Muted subscriptions in this chat:",
+            "$when": "${listType==\"mutedSubList\"}"
         },
         {
             "type": "ColumnSet",
@@ -51,9 +51,9 @@
                             "actions": [
                                 {
                                     "type": "Action.Submit",
-                                    "title": "Pause",
+                                    "title": "Mute",
                                     "data": {
-                                        "actionType": "pause",
+                                        "actionType": "mute",
                                         "botId": "${botId}",
                                         "fileId": "${fileId}",
                                         "groupId": "${groupId}"
@@ -67,7 +67,7 @@
                 {
                     "type": "Column",
                     "width": "auto",
-                    "$when": "${subscriptionState==\"pausedSubList\"}",
+                    "$when": "${subscriptionState==\"mutedSubList\"}",
                     "items": [
                         {
                             "type": "ActionSet",
@@ -90,7 +90,7 @@
                 {
                     "type": "Column",
                     "width": "auto",
-                    "$when": "${subscriptionState==\"pausedSubList\"}",
+                    "$when": "${subscriptionState==\"mutedSubList\"}",
                     "items": [
                         {
                             "type": "ActionSet",

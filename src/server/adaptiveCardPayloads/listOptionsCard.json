@@ -22,9 +22,9 @@
                 },
                 {
                     "type": "Action.Submit",
-                    "title": "Paused Subscriptions",
+                    "title": "Muted Subscriptions",
                     "data": {
-                        "actionType": "pausedSubList",
+                        "actionType": "mutedSubList",
                         "botId": "${botId}",
                         "groupId": "${groupId}"
                     }
