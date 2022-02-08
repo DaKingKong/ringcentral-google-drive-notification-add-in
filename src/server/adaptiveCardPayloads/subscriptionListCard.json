@@ -55,8 +55,7 @@
                                     "data": {
                                         "actionType": "mute",
                                         "botId": "${botId}",
-                                        "fileId": "${fileId}",
-                                        "groupId": "${groupId}"
+                                        "fileId": "${fileId}"
                                     },
                                     "style": "destructive"
                                 }
@@ -78,8 +77,7 @@
                                     "data": {
                                         "actionType": "resume",
                                         "botId": "${botId}",
-                                        "fileId": "${fileId}",
-                                        "groupId": "${groupId}"
+                                        "fileId": "${fileId}"
                                     },
                                     "style": "positive"
                                 }
@@ -101,8 +99,7 @@
                                     "data": {
                                         "actionType": "unsubscribe",
                                         "botId": "${botId}",
-                                        "fileId": "${fileId}",
-                                        "groupId": "${groupId}"
+                                        "fileId": "${fileId}"
                                     },
                                     "style": "destructive"
                                 }

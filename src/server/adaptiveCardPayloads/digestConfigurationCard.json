@@ -1,0 +1,98 @@
+{
+    "type": "AdaptiveCard",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.5",
+    "body": [
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "${documentIconUrl}"
+                        }
+                    ],
+                    "width": "auto",
+                    "verticalContentAlignment": "Center"
+                },
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "${documentName}"
+                        }
+                    ],
+                    "width": "auto",
+                    "verticalContentAlignment": "Center"
+                }
+            ]
+        },
+        {
+            "type": "Input.ChoiceSet",
+            "choices": [
+                {
+                    "title": "Monday",
+                    "value": "1"
+                },
+                {
+                    "title": "Tuesday",
+                    "value": "2"
+                },
+                {
+                    "title": "Wednesday",
+                    "value": "3"
+                },
+                {
+                    "title": "Thursday",
+                    "value": "4"
+                },
+                {
+                    "title": "Friday",
+                    "value": "5"
+                },
+                {
+                    "title": "Saturday",
+                    "value": "6"
+                },
+                {
+                    "title": "Sunday",
+                    "value": "7"
+                }
+            ],
+            "label": "Day of Week:",
+            "placeholder": "Monday",
+            "$when": "${state == \"weekly\"}",
+            "id": "dayOfWeek",
+            "isRequired": true,
+            "value": "1"
+        },
+        {
+            "type": "Input.Number",
+            "label": "Hour of Day",
+            "min": 0,
+            "max": 23,
+            "isRequired": true,
+            "placeholder": "0, 1, 2 ..., 23",
+            "id": "hourOfDay",
+            "errorMessage": "Input value must be integer, from 0 to 23."
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "Submit",
+                    "data": {
+                        "actionType": "digestConfiguration",
+                        "state": "${state}",
+                        "botId": "${botId}",
+                        "documentId": "${documentId}"
+                    }
+                }
+            ]
+        }
+    ]
+}

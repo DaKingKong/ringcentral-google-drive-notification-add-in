@@ -1,4 +1,3 @@
-const { google } = require('googleapis')
 const crypto = require('crypto');
 const { GoogleUser } = require('../models/googleUserModel');
 const { GoogleFile } = require('../models/googleFileModel');
@@ -40,6 +39,7 @@ async function interactiveMessages(req, res) {
             res.send('Bot not found');
             return;
         }
+        const groupId = body.conversation.id;
 
         let googleUser;
 
@@ -64,7 +64,7 @@ async function interactiveMessages(req, res) {
                     }
                 });
                 if (!googleUser) {
-                    await bot.sendMessage(body.conversation.id, { text: "Google Account not found." });
+                    await bot.sendMessage(groupId, { text: "Google Account not found." });
                     break;
                 }
 
@@ -73,23 +73,26 @@ async function interactiveMessages(req, res) {
                     if (match) {
                         //subscribe
                         const fileId = match[1];
-                        const subscriptionFileState = await subscriptionHandler.addFileSubscription(googleUser, body.conversation.id, botId, fileId);
+                        const subscriptionFileState = await subscriptionHandler.addFileSubscription(googleUser, groupId, botId, fileId, body.data.state);
                         switch (subscriptionFileState) {
                             case 'OK':
-                                await bot.sendMessage(body.conversation.id, { text: `Subscription created. Now watching new comment events for file: ${fileId}.` });
+                                await bot.sendMessage(groupId, { text: `Subscription created. Now watching new comment events for file: ${fileId}.` });
                                 break;
                             case 'Duplicated':
-                                await bot.sendMessage(body.conversation.id, { text: `Failed to create. Subscription for file: ${fileId} already exists.` });
+                                await bot.sendMessage(groupId, { text: `Failed to create. Subscription for file: ${fileId} already exists.` });
                                 break;
                             case 'Resumed':
-                                await bot.sendMessage(body.conversation.id, { text: `Subscription resumed. Subscription for file: ${fileId} RESUMED.` });
+                                await bot.sendMessage(groupId, { text: `Subscription resumed. Subscription for file: ${fileId} RESUMED.` });
                                 break;
                             case 'NotFound':
-                                await bot.sendMessage(body.conversation.id, { text: `Failed to create. Unable to find file: ${fileId}` });
+                                await bot.sendMessage(groupId, { text: `Failed to create. Unable to find file: ${fileId}` });
                                 break;
                         }
                     }
                 }
+                break;
+            case 'digestConfiguration':
+                await subscriptionHandler.setSubscriptionStateAndStartTime(botId, groupId, body.data.fileId, body.data.state, body.data.hourOfDay, body.data.dayOfWeek);
                 break;
             case 'mute':
                 googleUser = await GoogleUser.findOne({
@@ -98,11 +101,11 @@ async function interactiveMessages(req, res) {
                     }
                 });
                 if (!googleUser) {
-                    await bot.sendMessage(body.conversation.id, { text: "Google Account not found." });
+                    await bot.sendMessage(groupId, { text: "Google Account not found." });
                     break;
                 }
-                await subscriptionHandler.muteSubscription(bot.id, body.data.groupId, body.data.fileId);
-                await bot.sendMessage(body.conversation.id, { text: `Muted file: ${body.data.fileId}` });
+                await subscriptionHandler.muteSubscription(bot.id, groupId, body.data.fileId);
+                await bot.sendMessage(groupId, { text: `Muted file: ${body.data.fileId}` });
                 break;
             case 'resume':
                 googleUser = await GoogleUser.findOne({
@@ -111,11 +114,11 @@ async function interactiveMessages(req, res) {
                     }
                 });
                 if (!googleUser) {
-                    await bot.sendMessage(body.conversation.id, { text: "Google Account not found." });
+                    await bot.sendMessage(groupId, { text: "Google Account not found." });
                     break;
                 }
-                await subscriptionHandler.resumeSubscription(bot.id, body.data.groupId, body.data.fileId);
-                await bot.sendMessage(body.conversation.id, { text: `Resumed file: ${body.data.fileId}` });
+                await subscriptionHandler.resumeSubscription(bot.id, groupId, body.data.fileId);
+                await bot.sendMessage(groupId, { text: `Resumed file: ${body.data.fileId}` });
                 break;
             case 'unsubscribe':
                 googleUser = await GoogleUser.findOne({
@@ -124,11 +127,11 @@ async function interactiveMessages(req, res) {
                     }
                 });
                 if (!googleUser) {
-                    await bot.sendMessage(body.conversation.id, { text: "Google Account not found." });
+                    await bot.sendMessage(groupId, { text: "Google Account not found." });
                     break;
                 }
-                await subscriptionHandler.removeFileFromSubscription(bot.id, body.data.groupId, body.data.fileId);
-                await bot.sendMessage(body.conversation.id, { text: `Unsubscribed file: ${body.data.fileId}` });
+                await subscriptionHandler.removeFileFromSubscription(bot.id, groupId, body.data.fileId);
+                await bot.sendMessage(groupId, { text: `Unsubscribed file: ${body.data.fileId}` });
                 break;
             case 'activeSubList':
             case 'mutedSubList':
@@ -148,7 +151,7 @@ async function interactiveMessages(req, res) {
                 const subscriptions = await Subscription.findAll({
                     where: {
                         botId,
-                        groupId: body.data.groupId,
+                        groupId: groupId,
                         state: stateCondition
                     }
                 });
@@ -175,7 +178,7 @@ async function interactiveMessages(req, res) {
                 const subscriptionListCard = subscriptionListCardTemplate.expand({
                     $root: subscriptionListData
                 });
-                await bot.sendAdaptiveCard(body.data.groupId, subscriptionListCard);
+                await bot.sendAdaptiveCard(groupId, subscriptionListCard);
                 break;
         }
     }

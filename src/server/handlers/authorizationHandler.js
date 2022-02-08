@@ -97,7 +97,7 @@ async function oauthCallback(req, res) {
             const rcUserInfo = await rcAPI.getUserInfo(rcUserId, bot.token.access_token);
 
             // create a global subscription for this google user
-            await subscriptionHandler.createGlobalSubscription(user, botId);
+            await subscriptionHandler.createGlobalSubscription(user);
 
             await bot.sendMessage(user.rcDMGroupId, { text: `Authorized Google Account ${googleUserInfoResponse.email} for ${rcUserInfo.firstName} ${rcUserInfo.lastName}.` });
         }

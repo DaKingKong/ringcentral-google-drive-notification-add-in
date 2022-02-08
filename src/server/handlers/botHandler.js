@@ -36,8 +36,7 @@ const botHandler = async event => {
                     case 'list':
                         const listOptionsCardTemplate = new Template(listOptionsCardTemplateJson);
                         const listOptionsCardData = {
-                            botId: botForMessage.id,
-                            groupId: cmdGroup.id
+                            botId: botForMessage.id
                         }
                         const listOptionsCard = listOptionsCardTemplate.expand({
                             $root: listOptionsCardData

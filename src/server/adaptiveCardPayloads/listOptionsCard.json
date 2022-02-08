@@ -16,8 +16,7 @@
                     "title": "Active Subscriptions",
                     "data": {
                         "actionType": "activeSubList",
-                        "botId": "${botId}",
-                        "groupId": "${groupId}"
+                        "botId": "${botId}"
                     }
                 },
                 {
@@ -25,8 +24,7 @@
                     "title": "Muted Subscriptions",
                     "data": {
                         "actionType": "mutedSubList",
-                        "botId": "${botId}",
-                        "groupId": "${groupId}"
+                        "botId": "${botId}"
                     }
                 }
             ]
