@@ -5,19 +5,24 @@
     "body": [
         {
             "type": "TextBlock",
-            "text": "Your ${subscriptionState} digest for new comments:",
+            "text": "New Notifications",
             "wrap": true,
-            "separator": true
+            "size": "Large",
+            "weight": "Bolder"
+        },
+        {
+            "type": "TextBlock",
+            "text": "New Comments:",
+            "wrap": true,
+            "separator": true,
+            "weight": "Bolder",
+            "$when": "${showComments}"
         },
         {
             "type": "Container",
             "separator": true,
             "$data": "${commentNotifications}",
             "items": [
-                {
-                    "type": "TextBlock",
-                    "text": ""
-                },
                 {
                     "type": "ColumnSet",
                     "columns": [
@@ -26,7 +31,7 @@
                             "items": [
                                 {
                                     "type": "Image",
-                                    "url": "${documentIconUrl}"
+                                    "url": "${fileIconUrl}"
                                 }
                             ],
                             "width": "auto",
@@ -37,7 +42,7 @@
                             "items": [
                                 {
                                     "type": "TextBlock",
-                                    "text": "${documentName}"
+                                    "text": "${fileName}"
                                 }
                             ],
                             "width": "auto",
@@ -112,7 +117,7 @@
                                                 "items": [
                                                     {
                                                         "type": "Image",
-                                                        "url": "${documentIconUrl}",
+                                                        "url": "${fileIconUrl}",
                                                         "size": "Small",
                                                         "height": "16px"
                                                     }
@@ -124,7 +129,7 @@
                                                 "items": [
                                                     {
                                                         "type": "TextBlock",
-                                                        "text": "${documentName}",
+                                                        "text": "${fileName}",
                                                         "wrap": true
                                                     }
                                                 ],
@@ -225,8 +230,7 @@
                                         "id": "replyContainer",
                                         "isVisible": false
                                     }
-                                ],
-                                "$schema": "http://adaptivecards.io/schemas/adaptive-card.json"
+                                ]
                             }
                         }
                     ]

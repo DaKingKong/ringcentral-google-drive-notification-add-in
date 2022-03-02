@@ -14,6 +14,12 @@ exports.Subscription = sequelize.define('subscriptions', {
   botId: {
     type: Sequelize.STRING,
   },
+  rcUserId: {
+    type: Sequelize.STRING,
+  },
+  rcUserName: {
+    type: Sequelize.STRING,
+  },
   googleUserId: {
     type: Sequelize.STRING,
   },

@@ -1,0 +1,71 @@
+{
+    "type": "AdaptiveCard",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.5",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "Config",
+            "size": "Large",
+            "weight": "Bolder"
+        },
+        {
+            "type": "TextBlock",
+            "text": "Create a new subscription:",
+            "wrap": true,
+            "weight": "Bolder"
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "Create",
+                    "data": {
+                        "actionType": "subCard",
+                        "botId": "${botId}"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "TextBlock",
+            "text": "List all subscriptions:",
+            "wrap": true,
+            "weight": "Bolder"
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "List",
+                    "data": {
+                        "actionType": "listCard",
+                        "botId": "${botId}"
+                    }
+                }
+            ]
+        },
+        {
+            "type": "TextBlock",
+            "text": "Unauthorize:",
+            "wrap": true,
+            "weight": "Bolder"
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "Unauthorize",
+                    "data": {
+                        "actionType": "unAuthCard",
+                        "botId": "${botId}"
+                    },
+                    "style": "destructive"
+                }
+            ]
+        }
+    ]
+}

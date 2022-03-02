@@ -5,31 +5,29 @@
     "body": [
         {
             "type": "TextBlock",
-            "text": "${title}",
+            "text": "Unauthorize Google Drive",
             "wrap": true,
             "size": "Large",
-            "weight": "Bolder",
-            "$when": "${title!=null}"
+            "weight": "Bolder"
         },
         {
             "type": "TextBlock",
-            "text": "${text}",
-            "wrap": true,
-            "$when": "${text!=null}"
+            "text": "Your current Google Drive Account is ${googleUserEmail}.\n\nPlease click below button to **unauthorize**.\n\n**Warning**: It will clear out all subscriptions created under this Google Drive Account.",
+            "wrap": true
         },
         {
             "type": "ActionSet",
             "actions": [
                 {
                     "type": "Action.Submit",
-                    "title": "${buttonTitle}",
+                    "title": "Unauthorize",
                     "data": {
-                        "actionType": "${actionType}",
+                        "actionType": "unAuth",
                         "botId": "${botId}"
-                    }
+                    },
+                    "style": "destructive"
                 }
-            ],
-            "$when": "${actionType!=null}"
+            ]
         }
     ]
 }

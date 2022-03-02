@@ -70,8 +70,7 @@ async function onReceiveNotification(googleUser) {
             const subscriptions = await Subscription.findAll({
                 where: {
                     fileId,
-                    googleUserId: googleUser.id,
-                    isEnabled: true
+                    googleUserId: googleUser.id
                 }
             })
             // Ignore file if there's no subscription
@@ -93,8 +92,8 @@ async function onReceiveNotification(googleUser) {
                         userAvatar: commentData.author.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
                         username: commentData.author.displayName,
                         userEmail: commentData.anchor.emailAddress ?? "",
-                        documentIconUrl: fileData.iconLink,
-                        documentName: fileData.name,
+                        fileIconUrl: fileData.iconLink,
+                        fileName: fileData.name,
                         commentContent: commentData.content,
                         quotedContent: commentData.quotedFileContent.value,
                         fileUrl: fileData.webViewLink,
@@ -104,12 +103,10 @@ async function onReceiveNotification(googleUser) {
                         commentId: commentData.id,
                         fileId: fileId
                     };
-                    if(subscription.state === 'muted')
-                    {
+                    if (subscription.state === 'muted') {
                         continue;
                     }
-                    else if(subscription.state === 'realtime')
-                    {
+                    else if (subscription.state === 'realtime') {
                         const template = new Template(newCommentCardTemplate);
                         const card = template.expand({
                             $root: cardData
@@ -118,7 +115,7 @@ async function onReceiveNotification(googleUser) {
                         await bot.sendAdaptiveCard(subscription.groupId, card);
                     }
                     // daily, weekly -> cache
-                    else{
+                    else {
                         const cachedInfo = subscription.cachedInfo;
                         cachedInfo.commentNotifications.push(cardData);
                         await subscription.update({
@@ -138,8 +135,8 @@ async function onReceiveNotification(googleUser) {
                     userAvatar: owner.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
                     username: owner.displayName,
                     userEmail: owner.emailAddress ?? "",
-                    documentIconUrl: fileData.iconLink,
-                    documentName: fileData.name,
+                    fileIconUrl: fileData.iconLink,
+                    fileName: fileData.name,
                     fileUrl: fileData.webViewLink
                 };
 
@@ -154,19 +151,52 @@ async function onReceiveNotification(googleUser) {
     }
 }
 
-async function SendDigestNotification(subscription) {
-    const cardData =
-    {
-        subscriptionState: subscription.state,
-        commentNotifications: subscription.cachedInfo.commentNotifications
+async function SendDigestNotification(subscriptions) {
+    if (subscriptions.length === 0) {
+        return;
     }
 
-    const template = new Template(commentDigestCardTemplate);
-    const card = template.expand({
-        $root: cardData
-    });
-    // Send adaptive card to your channel in RingCentral App
-    await bot.sendAdaptiveCard(subscription.groupId, card);
+    const bot = await Bot.findByPk(subscriptions[0].botId);
+    const groupIds = [];
+    for (const sub of subscriptions) {
+        if (!groupIds.includes(sub.groupId)) {
+            groupIds.push(sub.groupId);
+        }
+    }
+    for (const groupId of groupIds) {
+        const subscriptionsInGroup = subscriptions.filter(s => s.groupId == groupId);
+        let cardData =
+        {
+            commentNotifications: []
+        }
+
+        for (const sub of subscriptionsInGroup) {
+            if (sub.cachedInfo.commentNotifications.length === 0) {
+                continue;
+            }
+            console.log(`notification to trigger count: ${sub.cachedInfo.commentNotifications.length}`);
+            cardData.commentNotifications = cardData.commentNotifications.concat(sub.cachedInfo.commentNotifications);
+        }
+
+        console.log(JSON.stringify(cardData, null, 2))
+
+        const template = new Template(commentDigestCardTemplate);
+        const card = template.expand({
+            $root: cardData
+        });
+
+        // Send adaptive card to your channel in RingCentral App
+        await bot.sendAdaptiveCard(groupId, card);
+
+        // Clear db data only if all info is sent successfully
+        for (const sub of subscriptionsInGroup) {
+            await sub.update({
+                cachedInfo: {
+                    commentNotifications: []
+                }
+            });
+        }
+    }
 }
 
 exports.notification = notification;

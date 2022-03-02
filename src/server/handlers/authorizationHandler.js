@@ -7,7 +7,8 @@ const rcAPI = require('../lib/rcAPI');
 const subscriptionHandler = require('./subscriptionHandler');
 
 const { Template } = require('adaptivecards-templating');
-const simpleInfoCardTemplate = require('../adaptiveCardPayloads/simpleInfoCard.json');
+const authCardTemplate = require('../adaptiveCardPayloads/authCard.json');
+const unAuthCardTemplate = require('../adaptiveCardPayloads/unAuthCard.json');
 
 async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken, botId) {
     const rcGroupInfo = await rcAPI.getGroupInfo(groupId, accessToken);
@@ -32,12 +33,22 @@ async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken, botId) {
     return inGroupUserInfo;
 }
 
-function getAuthCard(botId) {
-    const template = new Template(simpleInfoCardTemplate);
+function getAuthCard(authLink) {
+    const template = new Template(authCardTemplate);
     const cardData = {
-        title: 'Click below button to generate your auth link:',
-        actionType: 'auth',
-        buttonTitle: 'Generate Link',
+        link: authLink
+    }
+    const card = template.expand({
+        $root: cardData
+    });
+    return card;
+}
+
+function getUnAuthCard(googleUserEmail, rcUserId, botId){
+    const template = new Template(unAuthCardTemplate);
+    const cardData = {
+        googleUserEmail,
+        rcUserId,
         botId
     }
     const card = template.expand({
@@ -130,5 +141,6 @@ async function checkUserFileAccess(googleUser, fileId) {
 
 exports.getInGroupRcUserGoogleAccountInfo = getInGroupRcUserGoogleAccountInfo;
 exports.getAuthCard = getAuthCard;
+exports.getUnAuthCard = getUnAuthCard;
 exports.oauthCallback = oauthCallback;
 exports.checkUserFileAccess = checkUserFileAccess;

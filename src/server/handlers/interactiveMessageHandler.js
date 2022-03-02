@@ -1,15 +1,14 @@
 const crypto = require('crypto');
 const { GoogleUser } = require('../models/googleUserModel');
-const { GoogleFile } = require('../models/googleFileModel');
-const { Subscription } = require('../models/subscriptionModel');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
-const { getOAuthApp } = require('../lib/oauth');
-const Op = require('sequelize').Op;
-const { Template } = require('adaptivecards-templating');
+const { revokeToken } = require('../lib/oauth');
+const cardBuilder = require('../lib/cardBuilder');
 const rcAPI = require('../lib/rcAPI');
+const { Template } = require('adaptivecards-templating');
+const subscribeCardTemplateJson = require('../adaptiveCardPayloads/subscribeCard.json');
 
 const subscriptionHandler = require('./subscriptionHandler');
-const subscriptionListCardTemplateJson = require('../adaptiveCardPayloads/subscriptionListCard.json');
+const authorizationHandler = require('./authorizationHandler');
 
 async function interactiveMessages(req, res) {
     try {
@@ -40,145 +39,104 @@ async function interactiveMessages(req, res) {
             return;
         }
         const groupId = body.conversation.id;
+        const rcUserId = body.user.accountId;
 
-        let googleUser;
+        const googleUser = await GoogleUser.findOne({
+            where: {
+                rcUserId
+            }
+        });
+
+        // Create/Find DM conversation to the RC user
+        const createGroupResponse = await rcAPI.createConversation([rcUserId], bot.token.access_token);
+
+        if (!googleUser) {
+            await bot.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `auth` to authorize your account." });
+            res.status(200);
+            return;
+        }
 
         switch (body.data.actionType) {
-            case 'auth':
-                const oauthApp = getOAuthApp();
-                const authorizeUrl = `${oauthApp.code.getUri({
-                    state: `botId=${botId}&rcUserId=${body.user.accountId}`
-                })}&access_type=offline`;
-                // Create/Find DM conversation to the RC user
-                const createGroupResponse = await rcAPI.createConversation([body.user.accountId], bot.token.access_token);
-                await bot.sendMessage(createGroupResponse.id, { text: `![:Person](${body.user.accountId}), please click link to authorize: ${authorizeUrl}` });
-                res.status(200);
-                res.send('OK');
-                return;
+            case 'unAuthCard':
+                const unAuthCard = authorizationHandler.getUnAuthCard(googleUser.email, rcUserId, bot.id);
+                await bot.sendAdaptiveCard(createGroupResponse.id, unAuthCard);
+                break;
+            case 'subCard':
+                const subscribeCardResponse = await cardBuilder.buildSubscribeCard(bot.id);
+                await bot.sendAdaptiveCard(groupId, subscribeCardResponse.card);
+                break;
+            case 'listCard':
+                const subscriptionListCardResponse = await cardBuilder.buildSubscriptionListCard(bot.id, groupId);
+                if (subscriptionListCardResponse.isSuccessful) {
+                    await bot.sendAdaptiveCard(groupId, subscriptionListCardResponse.card);
+                }
+                else {
+                    await bot.sendMessage(groupId, { text: subscriptionListCardResponse.errorMessage });
+                }
+                break;
+            case 'unAuth':
+                await subscriptionHandler.stopSubscriptionForUser(googleUser);
+                await revokeToken(googleUser);
+                await googleUser.destroy();
+                await bot.sendMessage(createGroupResponse.id, { text: "Successfully unauthorized." });
+                break;
             case 'subscribe':
                 const links = body.data.inputLinks.split(';');
                 const fileIdRegex = new RegExp('.+google.com/.+?/d/(.+)/.+');
-                googleUser = await GoogleUser.findOne({
-                    where: {
-                        rcUserId: body.user.accountId
-                    }
-                });
-                if (!googleUser) {
-                    await bot.sendMessage(groupId, { text: "Google Account not found." });
-                    break;
-                }
 
                 for (const link of links) {
                     const match = link.match(fileIdRegex);
                     if (match) {
                         //subscribe
                         const fileId = match[1];
-                        const subscriptionFileState = await subscriptionHandler.addFileSubscription(googleUser, groupId, botId, fileId, body.data.state);
+                        const { subscriptionFileState, fileName } = await subscriptionHandler.addFileSubscription(googleUser, groupId, botId, fileId, body.data.state, body.data.hourOfDay, body.data.dayOfWeek, body.data.timezoneOffset, rcUserId, `${body.user.firstName} ${body.user.lastName}`);
                         switch (subscriptionFileState) {
                             case 'OK':
-                                await bot.sendMessage(groupId, { text: `Subscription created. Now watching new comment events for file: ${fileId}.` });
+                                await bot.sendMessage(groupId, { text: `**Subscription created**. Now watching new comment events for file: **${fileName}**.` });
                                 break;
                             case 'Duplicated':
-                                await bot.sendMessage(groupId, { text: `Failed to create. Subscription for file: ${fileId} already exists.` });
+                                await bot.sendMessage(groupId, { text: `**Failed to create**. Subscription for file: **${fileName}** already exists.` });
                                 break;
                             case 'Resumed':
-                                await bot.sendMessage(groupId, { text: `Subscription resumed. Subscription for file: ${fileId} RESUMED.` });
+                                await bot.sendMessage(groupId, { text: `**Subscription resumed**. Subscription for file: **${fileName}** RESUMED.` });
                                 break;
                             case 'NotFound':
-                                await bot.sendMessage(groupId, { text: `Failed to create. Unable to find file: ${fileId}` });
+                                await bot.sendMessage(groupId, { text: `**Failed to create**. Unable to find file with id: ${fileId}` });
                                 break;
                         }
                     }
                 }
                 break;
-            case 'digestConfiguration':
-                await subscriptionHandler.setSubscriptionStateAndStartTime(botId, groupId, body.data.fileId, body.data.state, body.data.hourOfDay, body.data.dayOfWeek);
-                break;
-            case 'mute':
-                googleUser = await GoogleUser.findOne({
-                    where: {
-                        rcUserId: body.user.accountId
-                    }
-                });
-                if (!googleUser) {
-                    await bot.sendMessage(groupId, { text: "Google Account not found." });
-                    break;
+            case 'subscriptionConfig':
+                const subscribeCardTemplate = new Template(subscribeCardTemplateJson);
+                const subscribeCardData = {
+                    mode: 'config',
+                    title: 'Subscription Config',
+                    subscriptionId: body.data.subscriptionId,
+                    fileId: body.data.fileId,
+                    iconLink: body.data.iconLink,
+                    fileName: body.data.fileName,
+                    rcUseName: body.data.rcUserName,
+                    botId: bot.id,
+                    subscriptionState: body.data.subscriptionState
                 }
+                const subscribeCard = subscribeCardTemplate.expand({
+                    $root: subscribeCardData
+                });
+                console.log(JSON.stringify(subscribeCard, null, 2));
+                await bot.sendAdaptiveCard(groupId, subscribeCard);
+                break;
+            case 'muteSubscription':
                 await subscriptionHandler.muteSubscription(bot.id, groupId, body.data.fileId);
-                await bot.sendMessage(groupId, { text: `Muted file: ${body.data.fileId}` });
+                await bot.sendMessage(groupId, { text: `**Muted file**: **${body.data.fileName}**` });
                 break;
-            case 'resume':
-                googleUser = await GoogleUser.findOne({
-                    where: {
-                        rcUserId: body.user.accountId
-                    }
-                });
-                if (!googleUser) {
-                    await bot.sendMessage(groupId, { text: "Google Account not found." });
-                    break;
-                }
-                await subscriptionHandler.resumeSubscription(bot.id, groupId, body.data.fileId);
-                await bot.sendMessage(groupId, { text: `Resumed file: ${body.data.fileId}` });
+            case 'updateSubscription':
+                await subscriptionHandler.setSubscriptionStateAndStartTime(bot.id, groupId, body.data.fileId, body.data.state, body.data.hourOfDay, body.data.dayOfWeek, body.data.timezoneOffset);
+                await bot.sendMessage(groupId, { text: `**Updated file**: **${body.data.fileName}**` });
                 break;
             case 'unsubscribe':
-                googleUser = await GoogleUser.findOne({
-                    where: {
-                        rcUserId: body.user.accountId
-                    }
-                });
-                if (!googleUser) {
-                    await bot.sendMessage(groupId, { text: "Google Account not found." });
-                    break;
-                }
                 await subscriptionHandler.removeFileFromSubscription(bot.id, groupId, body.data.fileId);
-                await bot.sendMessage(groupId, { text: `Unsubscribed file: ${body.data.fileId}` });
-                break;
-            case 'activeSubList':
-            case 'mutedSubList':
-                googleUser = await GoogleUser.findOne({
-                    where: {
-                        rcUserId: body.user.accountId
-                    }
-                });
-                if (!googleUser) {
-                    await botForMessage.sendMessage(cmdGroup.id, { text: "Google Account not found." });
-                }
-
-                const subscriptionListCardTemplate = new Template(subscriptionListCardTemplateJson);
-                // stateCondition: If 'mutedSubList', then return all 'muted' subs. If not, then return all non-'muted' subs
-                // [Op.ne]: 'muted' -> != 'muted'
-                const stateCondition = body.data.actionType === 'mutedSubList' ? 'muted' : { [Op.ne]: 'muted' };
-                const subscriptions = await Subscription.findAll({
-                    where: {
-                        botId,
-                        groupId: groupId,
-                        state: stateCondition
-                    }
-                });
-                let subscriptionList = [];;
-                for (const subscription of subscriptions) {
-                    const fileId = subscription.fileId;
-                    const file = await GoogleFile.findByPk(fileId);
-                    if (file) {
-                        subscriptionList.push({
-                            iconLink: file.iconLink,
-                            fileName: file.name,
-                            fileId,
-                            botId: subscription.botId,
-                            groupId: subscription.groupId,
-                            subscriptionState: body.data.actionType
-                        });
-                    }
-                }
-
-                const subscriptionListData = {
-                    listType: body.data.actionType,
-                    subscriptionList
-                }
-                const subscriptionListCard = subscriptionListCardTemplate.expand({
-                    $root: subscriptionListData
-                });
-                await bot.sendAdaptiveCard(groupId, subscriptionListCard);
+                await bot.sendMessage(groupId, { text: `**Unsubscribed file**: **${body.data.fileName}**` });
                 break;
         }
     }

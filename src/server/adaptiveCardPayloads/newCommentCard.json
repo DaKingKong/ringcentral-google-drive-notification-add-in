@@ -59,7 +59,7 @@
                     "items": [
                         {
                             "type": "Image",
-                            "url": "${documentIconUrl}",
+                            "url": "${fileIconUrl}",
                             "size": "Small",
                             "height": "16px"
                         }
@@ -71,7 +71,7 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "${documentName}",
+                            "text": "${fileName}",
                             "wrap": true
                         }
                     ],

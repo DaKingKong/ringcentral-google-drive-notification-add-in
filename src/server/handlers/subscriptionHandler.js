@@ -4,10 +4,6 @@ const { GoogleFile } = require('../models/googleFileModel');
 const { checkAndRefreshAccessToken } = require('../lib/oauth');
 const { generate } = require('shortid');
 const moment = require('moment');
-const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
-
-const { Template } = require('adaptivecards-templating');
-const digestConfigurationCardTemplateJson = require('../adaptiveCardPayloads/digestConfigurationCard.json');
 
 async function createGlobalSubscription(googleUser) {
   await checkAndRefreshAccessToken(googleUser);
@@ -43,7 +39,7 @@ async function createGlobalSubscription(googleUser) {
   return true;
 }
 
-async function addFileSubscription(googleUser, groupId, botId, fileId, state) {
+async function addFileSubscription(googleUser, groupId, botId, fileId, state, hourOfDay, dayOfWeek, timezoneOffset, rcUserId, rcUserName) {
   await checkAndRefreshAccessToken(googleUser);
   const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
 
@@ -55,18 +51,30 @@ async function addFileSubscription(googleUser, groupId, botId, fileId, state) {
     }
   })
 
+  let fileName = '';
+
   if (duplicatedFileInGroup) {
+    fileName = await GoogleFile.findByPk(duplicatedFileInGroup.fileId).name;
     if (duplicatedFileInGroup.state === 'muted') {
-      await resumeSubscription(botId, groupId, fileId);
-      return 'Resumed';
+      await updateSubscription(botId, groupId, fileId);
+      return {
+        subscriptionFileState: 'Resumed',
+        fileName
+      };
     }
 
-    return 'Duplicated';
+    return {
+      subscriptionFileState: 'Duplicated',
+      fileName
+    };
   }
 
   const checkFileResponse = await drive.files.get({ fileId, fields: 'id, name, iconLink' });
   if (!checkFileResponse.data.id) {
-    return 'NotFound';
+    return {
+      subscriptionFileState: 'NotFound',
+      fileName
+    };
   }
 
   const existingFile = await GoogleFile.findByPk(checkFileResponse.data.id);
@@ -76,42 +84,37 @@ async function addFileSubscription(googleUser, groupId, botId, fileId, state) {
       name: checkFileResponse.data.name,
       iconLink: checkFileResponse.data.iconLink
     });
+    fileName = checkFileResponse.data.name;
+  }
+  else {
+    fileName = existingFile.name;
   }
 
   await Subscription.create({
     id: generate(),
     groupId,
     botId,
+    rcUserId,
+    rcUserName,
     googleUserId: googleUser.id,
     fileId,
     // If state is not realtime, we need user to configure push notification frequency, so create sub as 'muted' until it's configured
     state: state === 'realtime' ? 'realtime' : 'muted',
-    stateBeforeMuted: state
+    stateBeforeMuted: state,
+    cachedInfo: { commentNotifications: [] }
   });
 
-  await postDigestConfigurationCard(botId, groupId, fileId, state, checkFileResponse.data.name, checkFileResponse.data.iconLink);
-
-  return 'OK';
-}
-
-async function postDigestConfigurationCard(botId, groupId, fileId, state, fileName, iconLink) {
-  const bot = await Bot.findByPk(botId);
-  const cardData = {
-    documentIconUrl: iconLink,
-    documentName: fileName,
-    state,
-    botId,
-    documentId: fileId
+  if (state !== 'realtime') {
+    await setSubscriptionStateAndStartTime(botId, groupId, fileId, state, hourOfDay, dayOfWeek, timezoneOffset);
   }
-  const digestConfigurationCardTemplate = new Template(digestConfigurationCardTemplateJson);
-  const card = digestConfigurationCardTemplate.expand({
-    $root: cardData
-  });
-  await bot.sendAdaptiveCard(groupId, card);
+  return {
+    subscriptionFileState: 'OK',
+    fileName
+  };
 }
 
 // hourOfDay 0,1,2...23; dayOfWeek 1,2,3...7
-async function setSubscriptionStateAndStartTime(botId, groupId, fileId, state, hourOfDay, dayOfWeek, clientAppTimeStamp) {
+async function setSubscriptionStateAndStartTime(botId, groupId, fileId, state, hourOfDay, dayOfWeek, timezoneOffset) {
   console.log(`change ${fileId}, with bot: ${botId} and group: ${groupId}`)
   const subscription = await Subscription.findOne({
     where: {
@@ -124,10 +127,8 @@ async function setSubscriptionStateAndStartTime(botId, groupId, fileId, state, h
     console.error('subscription not found.')
   }
 
-  // convert to next trigger date. (Non-UTC date here yet)
   const nowDate = new Date();
-  const timeZoneDiffInHours = Math.round(moment(clientAppTimeStamp).diff(nowDate, 'hours', true));
-  let hourOfDayUtc = hourOfDay - timeZoneDiffInHours;
+  let hourOfDayUtc = hourOfDay - timezoneOffset;
   let dayOffset = 0;
   if (hourOfDayUtc < 0) {
     dayOffset = -1;
@@ -141,11 +142,11 @@ async function setSubscriptionStateAndStartTime(botId, groupId, fileId, state, h
   let startTime;
   switch (state) {
     case 'daily':
-      startTime = moment(nowDate).utc().hours(hourOfDayUtc).seconds(0).minutes(0);
+      startTime = moment(nowDate).utc().add(dayOffset, 'days').hours(hourOfDayUtc).minute(0).second(0).millisecond(0);
       break;
     case 'weekly':
-      const dayOfWeekUtc = dayOfWeek + dayOffset;
-      startTime = moment(nowDate).utc().day(dayOfWeekUtc).hours(hourOfDayUtc).seconds(0).minutes(0);
+      const dayOfWeekUtc = Number(dayOfWeek) + dayOffset;
+      startTime = moment(nowDate).utc().day(dayOfWeekUtc).hours(hourOfDayUtc).minute(0).second(0).millisecond(0);
       break;
   }
 
@@ -174,7 +175,7 @@ async function muteSubscription(botId, groupId, fileId) {
   });
 }
 
-async function resumeSubscription(botId, groupId, fileId) {
+async function updateSubscription(botId, groupId, fileId) {
   console.log(`resuming ${fileId}, with bot: ${botId} and group: ${groupId}`)
   const subscription = await Subscription.findOne({
     where: {
@@ -201,19 +202,29 @@ async function removeFileFromSubscription(botId, groupId, fileId) {
       fileId
     }
   });
-  // [INSERT] call to delete webhook subscription from 3rd party platform
-  // const stopResponse = await drive.channels.stop({
-  //   requestBody: {
-  //     id: thirdPartySubscriptionId,
-  //     resourceId: targetToUnsubscribe.thirdPartyResourceId
-  //   }
-  // });
-  // console.log(`${targetToUnsubscribe.id} unsubscribed.`)
+}
+
+async function stopSubscriptionForUser(googleUser) {
+  const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
+
+  await drive.channels.stop({
+    requestBody: {
+      id: googleUser.googleSubscriptionId,
+      resourceId: googleUser.googleResourceId
+    }
+  });
+
+  await Subscription.destroy({
+    where: {
+      googleUserId: googleUser.id
+    }
+  });
 }
 
 exports.createGlobalSubscription = createGlobalSubscription;
 exports.addFileSubscription = addFileSubscription;
 exports.setSubscriptionStateAndStartTime = setSubscriptionStateAndStartTime;
 exports.muteSubscription = muteSubscription;
-exports.resumeSubscription = resumeSubscription;
+exports.updateSubscription = updateSubscription;
 exports.removeFileFromSubscription = removeFileFromSubscription;
+exports.stopSubscriptionForUser = stopSubscriptionForUser;

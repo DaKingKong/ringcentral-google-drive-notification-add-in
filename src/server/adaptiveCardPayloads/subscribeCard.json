@@ -4,44 +4,564 @@
     "version": "1.5",
     "body": [
         {
-            "id": "inputLinks",
-            "type": "Input.Text",
-            "placeholder": "Placeholder text",
-            "label": "Please input Google Drive file share links, separated by \";\".",
-            "isRequired": true
+            "type": "TextBlock",
+            "text": "${title}",
+            "wrap": true,
+            "size": "Large",
+            "weight": "Bolder"
         },
         {
-            "type": "Input.ChoiceSet",
-            "choices": [
+            "id": "inputLinks",
+            "type": "Input.Text",
+            "placeholder": "Google file link...",
+            "label": "Please input Google Drive file share links, separated by \";\".",
+            "isRequired": true,
+            "$when": "${mode=='sub'}"
+        },
+        {
+            "type": "Container",
+            "$when": "${mode=='config'}",
+            "items": [
                 {
-                    "title": "Realtime",
-                    "value": "realtime"
-                },
-                {
-                    "title": "Daily",
-                    "value": "daily"
-                },
-                {
-                    "title": "Weekly",
-                    "value": "weekly"
+                    "type": "ColumnSet",
+                    "columns": [
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "Image",
+                                    "url": "${iconLink}"
+                                }
+                            ],
+                            "width": "20px",
+                            "verticalContentAlignment": "Center"
+                        },
+                        {
+                            "type": "Column",
+                            "items": [
+                                {
+                                    "type": "TextBlock",
+                                    "text": "**${fileName}** (${subscriptionState})"
+                                }
+                            ],
+                            "width": "stretch",
+                            "verticalContentAlignment": "Center"
+                        }
+                    ]
                 }
-            ],
-            "placeholder": "Subscription Mode",
-            "id": "state",
-            "isRequired": true
+            ]
+        },
+        {
+            "type": "TextBlock",
+            "text": "Please select notification push mode:",
+            "wrap": true,
+            "weight": "Bolder"
         },
         {
             "type": "ActionSet",
             "actions": [
                 {
-                    "type": "Action.Submit",
-                    "title": "Submit",
-                    "data": {
-                        "actionType": "subscribe",
-                        "botId": "${botId}"
+                    "type": "Action.ShowCard",
+                    "title": "Realtime",
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Realtime notifications will be pushed **immediately**. ",
+                                "wrap": true
+                            },
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Create Realtime",
+                                        "data": {
+                                            "actionType": "subscribe",
+                                            "botId": "${botId}",
+                                            "fileName": "${fileName}",
+                                            "state": "realtime"
+                                        },
+                                        "style": "positive",
+                                        "$when": "${mode == 'sub'}"
+                                    },
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Update Realtime",
+                                        "data": {
+                                            "actionType": "updateSubscription",
+                                            "botId": "${botId}",
+                                            "fileId": "${fileId}",
+                                            "fileName": "${fileName}",
+                                            "state": "realtime",
+                                            "subscriptionId": "${subscriptionId}"
+                                        },
+                                        "style": "positive",
+                                        "$when": "${mode == 'config'}"
+                                    }
+                                ]
+                            }
+                        ]
                     }
                 }
-            ]
+            ],
+            "separator": true
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.ShowCard",
+                    "title": "Daily",
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Daily notifications will be pushed at **a fixed time everyday**. ",
+                                "wrap": true
+                            },
+                            {
+                                "type": "Input.Number",
+                                "label": "Hour of Day",
+                                "min": 0,
+                                "max": 23,
+                                "isRequired": true,
+                                "placeholder": "0, 1, 2 ..., 23",
+                                "id": "hourOfDay",
+                                "errorMessage": "Input value must be integer, from 0 to 23."
+                            },
+                            {
+                                "type": "Input.ChoiceSet",
+                                "choices": [
+                                    {
+                                        "title": "+12:00",
+                                        "value": "12"
+                                    },
+                                    {
+                                        "title": "+11:00",
+                                        "value": "11"
+                                    },
+                                    {
+                                        "title": "+10:00",
+                                        "value": "10"
+                                    },
+                                    {
+                                        "title": "+09:00",
+                                        "value": "9"
+                                    },
+                                    {
+                                        "title": "+08:00",
+                                        "value": "8"
+                                    },
+                                    {
+                                        "title": "+07:00",
+                                        "value": "7"
+                                    },
+                                    {
+                                        "title": "+06:00",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "title": "+05:00",
+                                        "value": "5"
+                                    },
+                                    {
+                                        "title": "+04:00",
+                                        "value": "4"
+                                    },
+                                    {
+                                        "title": "+03:00",
+                                        "value": "3"
+                                    },
+                                    {
+                                        "title": "+02:00",
+                                        "value": "2"
+                                    },
+                                    {
+                                        "title": "+01:00",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "title": "+00:00",
+                                        "value": "0"
+                                    },
+                                    {
+                                        "title": "-01:00",
+                                        "value": "-1"
+                                    },
+                                    {
+                                        "title": "-02:00",
+                                        "value": "-2"
+                                    },
+                                    {
+                                        "title": "-03:00",
+                                        "value": "-3"
+                                    },
+                                    {
+                                        "title": "-04:00",
+                                        "value": "-4"
+                                    },
+                                    {
+                                        "title": "-05:00",
+                                        "value": "-5"
+                                    },
+                                    {
+                                        "title": "-06:00",
+                                        "value": "-6"
+                                    },
+                                    {
+                                        "title": "-07:00",
+                                        "value": "-7"
+                                    },
+                                    {
+                                        "title": "-08:00",
+                                        "value": "-8"
+                                    },
+                                    {
+                                        "title": "-09:00",
+                                        "value": "-9"
+                                    },
+                                    {
+                                        "title": "-10:00",
+                                        "value": "-10"
+                                    },
+                                    {
+                                        "title": "-11:00",
+                                        "value": "-11"
+                                    }
+                                ],
+                                "label": "Timezone Offset (hours):",
+                                "placeholder": "+00:00",
+                                "id": "timezoneOffset",
+                                "isRequired": true,
+                                "value": "0"
+                            },
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Create Daily",
+                                        "data": {
+                                            "actionType": "subscribe",
+                                            "botId": "${botId}",
+                                            "fileName": "${fileName}",
+                                            "state": "daily"
+                                        },
+                                        "style": "positive",
+                                        "$when": "${mode == 'sub'}"
+                                    },
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Update Daily",
+                                        "data": {
+                                            "actionType": "updateSubscription",
+                                            "botId": "${botId}",
+                                            "fileId": "${fileId}",
+                                            "fileName": "${fileName}",
+                                            "state": "daily",
+                                            "subscriptionId": "${subscriptionId}"
+                                        },
+                                        "style": "positive",
+                                        "$when": "${mode == 'config'}"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "separator": true
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.ShowCard",
+                    "title": "Weekly",
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Weekly notifications will be pushed at **a fixed time on a fixed day of week**. ",
+                                "wrap": true
+                            },
+                            {
+                                "type": "Input.ChoiceSet",
+                                "choices": [
+                                    {
+                                        "title": "Monday",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "title": "Tuesday",
+                                        "value": "2"
+                                    },
+                                    {
+                                        "title": "Wednesday",
+                                        "value": "3"
+                                    },
+                                    {
+                                        "title": "Thursday",
+                                        "value": "4"
+                                    },
+                                    {
+                                        "title": "Friday",
+                                        "value": "5"
+                                    },
+                                    {
+                                        "title": "Saturday",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "title": "Sunday",
+                                        "value": "7"
+                                    }
+                                ],
+                                "label": "Day of Week:",
+                                "placeholder": "Monday",
+                                "id": "dayOfWeek",
+                                "isRequired": true,
+                                "value": "1"
+                            },
+                            {
+                                "type": "Input.Number",
+                                "label": "Hour of Day",
+                                "min": 0,
+                                "max": 23,
+                                "isRequired": true,
+                                "placeholder": "0, 1, 2 ..., 23",
+                                "id": "hourOfDay",
+                                "errorMessage": "Input value must be integer, from 0 to 23."
+                            },
+                            {
+                                "type": "Input.ChoiceSet",
+                                "choices": [
+                                    {
+                                        "title": "+12:00",
+                                        "value": "12"
+                                    },
+                                    {
+                                        "title": "+11:00",
+                                        "value": "11"
+                                    },
+                                    {
+                                        "title": "+10:00",
+                                        "value": "10"
+                                    },
+                                    {
+                                        "title": "+09:00",
+                                        "value": "9"
+                                    },
+                                    {
+                                        "title": "+08:00",
+                                        "value": "8"
+                                    },
+                                    {
+                                        "title": "+07:00",
+                                        "value": "7"
+                                    },
+                                    {
+                                        "title": "+06:00",
+                                        "value": "6"
+                                    },
+                                    {
+                                        "title": "+05:00",
+                                        "value": "5"
+                                    },
+                                    {
+                                        "title": "+04:00",
+                                        "value": "4"
+                                    },
+                                    {
+                                        "title": "+03:00",
+                                        "value": "3"
+                                    },
+                                    {
+                                        "title": "+02:00",
+                                        "value": "2"
+                                    },
+                                    {
+                                        "title": "+01:00",
+                                        "value": "1"
+                                    },
+                                    {
+                                        "title": "+00:00",
+                                        "value": "0"
+                                    },
+                                    {
+                                        "title": "-01:00",
+                                        "value": "-1"
+                                    },
+                                    {
+                                        "title": "-02:00",
+                                        "value": "-2"
+                                    },
+                                    {
+                                        "title": "-03:00",
+                                        "value": "-3"
+                                    },
+                                    {
+                                        "title": "-04:00",
+                                        "value": "-4"
+                                    },
+                                    {
+                                        "title": "-05:00",
+                                        "value": "-5"
+                                    },
+                                    {
+                                        "title": "-06:00",
+                                        "value": "-6"
+                                    },
+                                    {
+                                        "title": "-07:00",
+                                        "value": "-7"
+                                    },
+                                    {
+                                        "title": "-08:00",
+                                        "value": "-8"
+                                    },
+                                    {
+                                        "title": "-09:00",
+                                        "value": "-9"
+                                    },
+                                    {
+                                        "title": "-10:00",
+                                        "value": "-10"
+                                    },
+                                    {
+                                        "title": "-11:00",
+                                        "value": "-11"
+                                    }
+                                ],
+                                "label": "Timezone Offset (hours):",
+                                "placeholder": "+00:00",
+                                "id": "timezoneOffset",
+                                "isRequired": true,
+                                "value": "0"
+                            },
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Create Weekly",
+                                        "data": {
+                                            "actionType": "subscribe",
+                                            "botId": "${botId}",
+                                            "fileName": "${fileName}",
+                                            "state": "weekly"
+                                        },
+                                        "style": "positive",
+                                        "$when": "${mode == 'sub'}"
+                                    },
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Update Weekly",
+                                        "data": {
+                                            "actionType": "updateSubscription",
+                                            "botId": "${botId}",
+                                            "fileId": "${fileId}",
+                                            "fileName": "${fileName}",
+                                            "state": "weekly",
+                                            "subscriptionId": "${subscriptionId}"
+                                        },
+                                        "style": "positive",
+                                        "$when": "${mode == 'config'}"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "separator": true
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.ShowCard",
+                    "title": "Mute",
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Realtime notifications will **not** be pushed. ",
+                                "wrap": true
+                            },
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Mute Notification",
+                                        "data": {
+                                            "actionType": "muteSubscription",
+                                            "botId": "${botId}",
+                                            "fileId": "${fileId}",
+                                            "fileName": "${fileName}",
+                                            "state": "mute",
+                                            "subscriptionId": "${subscriptionId}"
+                                        },
+                                        "style": "positive"
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                }
+            ],
+            "separator": true,
+            "$when": "${mode == 'config'}"
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.ShowCard",
+                    "title": "Unsubscribe",
+                    "card": {
+                        "type": "AdaptiveCard",
+                        "version": "1.5",
+                        "body": [
+                            {
+                                "type": "TextBlock",
+                                "text": "Subscription will be **removed**.",
+                                "wrap": true
+                            },
+                            {
+                                "type": "ActionSet",
+                                "actions": [
+                                    {
+                                        "type": "Action.Submit",
+                                        "title": "Unsubscribe",
+                                        "data": {
+                                            "actionType": "unsubscribe",
+                                            "botId": "${botId}",
+                                            "fileId": "${fileId}",
+                                            "fileName": "${fileName}",
+                                            "subscriptionId": "${subscriptionId}"
+                                        },
+                                        "style": "destructive"
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    "style": "destructive"
+                }
+            ],
+            "separator": true,
+            "$when": "${mode == 'config'}"
         }
     ]
 }

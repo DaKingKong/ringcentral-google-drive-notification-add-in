@@ -6,18 +6,12 @@
         {
             "type": "TextBlock",
             "wrap": true,
-            "text": "Active subscriptions in this chat:",
-            "$when": "${listType==\"activeSubList\"}"
-        },
-        {
-            "type": "TextBlock",
-            "wrap": true,
-            "text": "Muted subscriptions in this chat:",
-            "$when": "${listType==\"mutedSubList\"}"
+            "text": "**Active** subscriptions in this chat:",
+            "$when": "${showActiveList}"
         },
         {
             "type": "ColumnSet",
-            "$data": "${subscriptionList}",
+            "$data": "${activeSubscriptionList}",
             "columns": [
                 {
                     "type": "Column",
@@ -35,7 +29,7 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "${fileName}"
+                            "text": "**${fileName}** (${subscriptionState})"
                         }
                     ],
                     "width": "stretch",
@@ -44,64 +38,84 @@
                 {
                     "type": "Column",
                     "width": "auto",
-                    "$when": "${subscriptionState==\"activeSubList\"}",
                     "items": [
                         {
                             "type": "ActionSet",
                             "actions": [
                                 {
                                     "type": "Action.Submit",
-                                    "title": "Mute",
+                                    "title": "Config",
                                     "data": {
-                                        "actionType": "mute",
+                                        "actionType": "subscriptionConfig",
                                         "botId": "${botId}",
-                                        "fileId": "${fileId}"
-                                    },
-                                    "style": "destructive"
+                                        "fileId": "${fileId}",
+                                        "iconLink": "${iconLink}",
+                                        "fileName": "${fileName}",
+                                        "rcUserName": "${rcUserName}",
+                                        "subscriptionId": "${subscriptionId}",
+                                        "subscriptionState": "${subscriptionState}"
+                                    }
                                 }
                             ]
                         }
                     ]
-                },
+                }
+            ],
+            "horizontalAlignment": "Left",
+            "separator": true
+        },
+        {
+            "type": "TextBlock",
+            "wrap": true,
+            "text": "**Muted** subscriptions in this chat:",
+            "$when": "${showMutedList}"
+        },
+        {
+            "type": "ColumnSet",
+            "$data": "${mutedSubscriptionList}",
+            "columns": [
                 {
                     "type": "Column",
-                    "width": "auto",
-                    "$when": "${subscriptionState==\"mutedSubList\"}",
                     "items": [
                         {
-                            "type": "ActionSet",
-                            "actions": [
-                                {
-                                    "type": "Action.Submit",
-                                    "title": "Resume",
-                                    "data": {
-                                        "actionType": "resume",
-                                        "botId": "${botId}",
-                                        "fileId": "${fileId}"
-                                    },
-                                    "style": "positive"
-                                }
-                            ]
+                            "type": "Image",
+                            "url": "${iconLink}"
                         }
-                    ]
+                    ],
+                    "width": "20px",
+                    "verticalContentAlignment": "Center"
+                },
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "**${fileName}** (${subscriptionState})"
+                        }
+                    ],
+                    "width": "stretch",
+                    "verticalContentAlignment": "Center"
                 },
                 {
                     "type": "Column",
                     "width": "auto",
-                    "$when": "${subscriptionState==\"mutedSubList\"}",
                     "items": [
                         {
                             "type": "ActionSet",
                             "actions": [
                                 {
                                     "type": "Action.Submit",
-                                    "title": "Unsubscribe",
+                                    "title": "Config",
                                     "data": {
-                                        "actionType": "unsubscribe",
+                                        "actionType": "subscriptionConfig",
                                         "botId": "${botId}",
-                                        "fileId": "${fileId}"
-                                    },
-                                    "style": "destructive"
+                                        "fileId": "${fileId}",
+                                        "iconLink": "${iconLink}",
+                                        "fileName": "${fileName}",
+                                        "rcUserName": "${rcUserName}",
+                                        "subscriptionId": "${subscriptionId}",
+                                        "subscriptionState": "${subscriptionState}"
+                                    }
                                 }
                             ]
                         }
