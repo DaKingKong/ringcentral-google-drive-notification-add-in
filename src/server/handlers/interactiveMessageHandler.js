@@ -1,7 +1,8 @@
 const crypto = require('crypto');
+const { google } = require('googleapis')
 const { GoogleUser } = require('../models/googleUserModel');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
-const { revokeToken } = require('../lib/oauth');
+const { revokeToken, checkAndRefreshAccessToken } = require('../lib/oauth');
 const cardBuilder = require('../lib/cardBuilder');
 const rcAPI = require('../lib/rcAPI');
 const { Template } = require('adaptivecards-templating');
@@ -39,7 +40,7 @@ async function interactiveMessages(req, res) {
             return;
         }
         const groupId = body.conversation.id;
-        const rcUserId = body.user.accountId;
+        const rcUserId = body.user.extId;
 
         const googleUser = await GoogleUser.findOne({
             where: {
@@ -62,7 +63,7 @@ async function interactiveMessages(req, res) {
                 await bot.sendAdaptiveCard(createGroupResponse.id, unAuthCard);
                 break;
             case 'subCard':
-                const subscribeCardResponse = await cardBuilder.buildSubscribeCard(bot.id);
+                const subscribeCardResponse = cardBuilder.buildSubscribeCard(bot.id);
                 await bot.sendAdaptiveCard(groupId, subscribeCardResponse.card);
                 break;
             case 'listCard':
@@ -96,9 +97,6 @@ async function interactiveMessages(req, res) {
                                 break;
                             case 'Duplicated':
                                 await bot.sendMessage(groupId, { text: `**Failed to create**. Subscription for file: **${fileName}** already exists.` });
-                                break;
-                            case 'Resumed':
-                                await bot.sendMessage(groupId, { text: `**Subscription resumed**. Subscription for file: **${fileName}** RESUMED.` });
                                 break;
                             case 'NotFound':
                                 await bot.sendMessage(groupId, { text: `**Failed to create**. Unable to find file with id: ${fileId}` });
@@ -137,6 +135,32 @@ async function interactiveMessages(req, res) {
             case 'unsubscribe':
                 await subscriptionHandler.removeFileFromSubscription(bot.id, groupId, body.data.fileId);
                 await bot.sendMessage(groupId, { text: `**Unsubscribed file**: **${body.data.fileName}**` });
+                break;
+            case 'replyComment':
+                await checkAndRefreshAccessToken(googleUser);
+                const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
+                await drive.replies.create({
+                    commentId: body.data.commentId,
+                    fileId: body.data.fileId,
+                    fields: '*',
+                    requestBody: {
+                        content: body.data.replyText
+                    }
+                });
+                // notify user the result of the action in RingCentral App conversation
+                await bot.sendMessage(groupId, { text: 'Comment replied.' });
+                break;
+            case 'grantAccess':
+                await checkAndRefreshAccessToken(googleUser);
+                for (const grantUserInfo of body.data.googleUserInfo) {
+                    const isGrantAccessSuccessful = await authorizationHandler.grantFileAccessToUser(googleUser, body.data.fileId, grantUserInfo, body.data.permissionRole);
+                    if(!isGrantAccessSuccessful)
+                    {
+                        await bot.sendMessage(groupId, { text: 'Failed to grant access.' });
+                        break;
+                    }
+                }
+                await bot.sendMessage(groupId, { text: 'Access granted.' });
                 break;
         }
     }

@@ -14,7 +14,7 @@
             "id": "inputLinks",
             "type": "Input.Text",
             "placeholder": "Google file link...",
-            "label": "Please input Google Drive file share links, separated by \";\".",
+            "label": "Please input Google Drive file links, separated by \";\".",
             "isRequired": true,
             "$when": "${mode=='sub'}"
         },

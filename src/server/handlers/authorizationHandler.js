@@ -1,4 +1,4 @@
-const { getOAuthApp } = require('../lib/oauth');
+const { getOAuthApp, checkAndRefreshAccessToken } = require('../lib/oauth');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { GoogleUser } = require('../models/googleUserModel');
 const { google } = require('googleapis')
@@ -10,20 +10,41 @@ const { Template } = require('adaptivecards-templating');
 const authCardTemplate = require('../adaptiveCardPayloads/authCard.json');
 const unAuthCardTemplate = require('../adaptiveCardPayloads/unAuthCard.json');
 
-async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken, botId) {
+async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken) {
     const rcGroupInfo = await rcAPI.getGroupInfo(groupId, accessToken);
 
     const membersInGroup = rcGroupInfo.members;
+    const nonBotNonGuestMembersInGroup = [];
+
+    for (const memberId of membersInGroup) {
+        try {
+            console.log(`fetching person: ${memberId}`);
+            // Case: a guest would return 404 response
+            const memberResponse = await rcAPI.getUserInfo(memberId, accessToken);
+            // Case: a bot would end with '.bot.glip.net'
+            if (memberResponse.email && memberResponse.email.endsWith('.bot.glip.net')) {
+                continue;
+            }
+
+            nonBotNonGuestMembersInGroup.push(memberId);
+        }
+        catch (e) {
+            if (e.message === 'Request failed with status code 404') {
+                continue;
+            }
+        }
+    }
+
     const existingUsers = await GoogleUser.findAll({
         where: {
             rcUserId: {
-                [Op.or]: membersInGroup
+                [Op.or]: nonBotNonGuestMembersInGroup
             }
         }
     });
 
     const rcUserIdsWithGoogleAccount = existingUsers.map(u => u.rcUserId);
-    const rcUserIdsWithoutGoogleAccount = membersInGroup.filter(u => !rcUserIdsWithGoogleAccount.includes(u) && u != botId);
+    const rcUserIdsWithoutGoogleAccount = nonBotNonGuestMembersInGroup.filter(u => !rcUserIdsWithGoogleAccount.includes(u));
 
     const inGroupUserInfo = {
         rcUserIdsWithGoogleAccount,
@@ -44,7 +65,7 @@ function getAuthCard(authLink) {
     return card;
 }
 
-function getUnAuthCard(googleUserEmail, rcUserId, botId){
+function getUnAuthCard(googleUserEmail, rcUserId, botId) {
     const template = new Template(unAuthCardTemplate);
     const cardData = {
         googleUserEmail,
@@ -127,6 +148,7 @@ async function oauthCallback(req, res) {
 
 async function checkUserFileAccess(googleUser, fileId) {
     try {
+        await checkAndRefreshAccessToken(googleUser);
         const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
         await drive.files.get({ fileId, fields: 'id' });
         return true;
@@ -139,8 +161,29 @@ async function checkUserFileAccess(googleUser, fileId) {
     }
 }
 
+async function grantFileAccessToUser(googleFileOwnerUser, fileId, grantUserInfo, permissionRole) {
+    try {
+        await checkAndRefreshAccessToken(googleFileOwnerUser);
+        const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleFileOwnerUser.accessToken}` } });
+        await drive.permissions.create({
+            fileId,
+            sendNotificationEmail: false,
+            requestBody: {
+                role: permissionRole,
+                emailAddress: grantUserInfo.email,
+                type: 'user'
+            }
+        });
+        return true;
+    }
+    catch (e) {
+        return false;
+    }
+}
+
 exports.getInGroupRcUserGoogleAccountInfo = getInGroupRcUserGoogleAccountInfo;
 exports.getAuthCard = getAuthCard;
 exports.getUnAuthCard = getUnAuthCard;
 exports.oauthCallback = oauthCallback;
 exports.checkUserFileAccess = checkUserFileAccess;
+exports.grantFileAccessToUser = grantFileAccessToUser;

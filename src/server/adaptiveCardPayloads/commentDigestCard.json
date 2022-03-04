@@ -190,13 +190,6 @@
                                                 "type": "Action.OpenUrl",
                                                 "title": "View",
                                                 "url": "${fileUrl}"
-                                            },
-                                            {
-                                                "type": "Action.ToggleVisibility",
-                                                "title": "Reply",
-                                                "targetElements": [
-                                                    "replyContainer"
-                                                ]
                                             }
                                         ]
                                     },
@@ -217,8 +210,9 @@
                                                         "type": "Action.Submit",
                                                         "title": "Submit",
                                                         "data": {
-                                                            "action": "replyComment",
+                                                            "actionType": "replyComment",
                                                             "userId": "${userId}",
+                                                            "botId": "${botId}",
                                                             "subscriptionId": "${subscriptionId}",
                                                             "commentId": "${commentId}",
                                                             "fileId": "${fileId}"
@@ -226,9 +220,7 @@
                                                     }
                                                 ]
                                             }
-                                        ],
-                                        "id": "replyContainer",
-                                        "isVisible": false
+                                        ]
                                     }
                                 ]
                             }

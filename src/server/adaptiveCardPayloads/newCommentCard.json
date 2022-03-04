@@ -159,8 +159,9 @@
                             "type": "Action.Submit",
                             "title": "Submit",
                             "data": {
-                                "action": "replyComment",
+                                "actionType": "replyComment",
                                 "userId": "${userId}",
+                                "botId": "${botId}",
                                 "subscriptionId": "${subscriptionId}",
                                 "commentId": "${commentId}",
                                 "fileId": "${fileId}"

@@ -101,7 +101,8 @@ async function onReceiveNotification(googleUser) {
                         userId: googleUser.id,
                         subscriptionId: subscription.id,
                         commentId: commentData.id,
-                        fileId: fileId
+                        fileId: fileId,
+                        botId: bot.id
                     };
                     if (subscription.state === 'muted') {
                         continue;

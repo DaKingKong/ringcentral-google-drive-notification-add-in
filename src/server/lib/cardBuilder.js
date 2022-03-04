@@ -2,6 +2,7 @@
 const { Template } = require('adaptivecards-templating');
 const subscriptionListCardTemplateJson = require('../adaptiveCardPayloads/subscriptionListCard.json');
 const subscribeCardTemplateJson = require('../adaptiveCardPayloads/subscribeCard.json');
+const grantFileAccessCardTemplateJson = require('../adaptiveCardPayloads/grantFileAccessCard.json');
 
 const { Subscription } = require('../models/subscriptionModel');
 const { GoogleFile } = require('../models/googleFileModel');
@@ -72,7 +73,7 @@ async function buildSubscriptionListCard(botId, groupId) {
     };
 }
 
-async function buildSubscribeCard(botId){
+function buildSubscribeCard(botId){
     const subscribeCardTemplate = new Template(subscribeCardTemplateJson);
     const subscribeCardData = {
         mode: 'sub',
@@ -89,5 +90,23 @@ async function buildSubscribeCard(botId){
     };
 }
 
+function grantFileAccessCard(botId, fileId, googleUserInfo){
+    const grantFileAccessCardTemplate = new Template(grantFileAccessCardTemplateJson);
+    const grantFileAccessCardData = {
+        googleUserInfo,
+        fileId,
+        botId
+    }
+    const grantFileAccessCard = grantFileAccessCardTemplate.expand({
+        $root: grantFileAccessCardData
+    });
+    
+    return {
+        isSuccessful: true,
+        card: grantFileAccessCard
+    };
+}
+
 exports.buildSubscriptionListCard = buildSubscriptionListCard;
 exports.buildSubscribeCard = buildSubscribeCard;
+exports.grantFileAccessCard = grantFileAccessCard;
