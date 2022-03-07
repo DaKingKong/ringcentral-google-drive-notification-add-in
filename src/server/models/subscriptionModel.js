@@ -30,9 +30,6 @@ exports.Subscription = sequelize.define('subscriptions', {
   state: {
     type: Sequelize.STRING,
   },
-  stateBeforeMuted: {
-    type: Sequelize.STRING,
-  },
   startTime: {
     type: Sequelize.DATE,
   },

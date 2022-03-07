@@ -5,14 +5,14 @@
     "body": [
         {
             "type": "TextBlock",
-            "text": "Unauthorize Google Drive",
+            "text": "Google Drive Logout",
             "wrap": true,
             "size": "Large",
             "weight": "Bolder"
         },
         {
             "type": "TextBlock",
-            "text": "Your current Google Drive Account is ${googleUserEmail}.\n\nPlease click below button to **unauthorize**.\n\n**Warning**: It will clear out all subscriptions created under this Google Drive Account.",
+            "text": "Your current Google Drive Account is ${googleUserEmail}.\n\nPlease click below button to **logout**.\n\n**Warning**: It will clear out all subscriptions created under this Google Drive Account.",
             "wrap": true
         },
         {
@@ -20,7 +20,7 @@
             "actions": [
                 {
                     "type": "Action.Submit",
-                    "title": "Unauthorize",
+                    "title": "Logout",
                     "data": {
                         "actionType": "unAuth",
                         "botId": "${botId}"

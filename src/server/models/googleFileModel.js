@@ -12,5 +12,11 @@ exports.GoogleFile = sequelize.define('google-files', {
   },
   iconLink: {
     type: Sequelize.STRING,
+  },
+  ownerEmail: {
+    type: Sequelize.STRING,
+  },
+  url: {
+    type: Sequelize.STRING,
   }
 });

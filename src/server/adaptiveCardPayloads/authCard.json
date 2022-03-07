@@ -5,14 +5,14 @@
     "body": [
         {
             "type": "TextBlock",
-            "text": "Authorize Google Drive",
+            "text": "Google Drive Login",
             "wrap": true,
             "size": "Large",
             "weight": "Bolder"
         },
         {
             "type": "TextBlock",
-            "text": "Please click below button to authorize your account.",
+            "text": "Please click below button to login",
             "wrap": true
         },
         {
@@ -20,7 +20,7 @@
             "actions": [
                 {
                     "type": "Action.OpenUrl",
-                    "title": "Authorize",
+                    "title": "Login",
                     "url": "${link}"
                 }
             ]

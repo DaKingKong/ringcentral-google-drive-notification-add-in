@@ -1,8 +1,8 @@
-
 const { Template } = require('adaptivecards-templating');
 const subscriptionListCardTemplateJson = require('../adaptiveCardPayloads/subscriptionListCard.json');
 const subscribeCardTemplateJson = require('../adaptiveCardPayloads/subscribeCard.json');
 const grantFileAccessCardTemplateJson = require('../adaptiveCardPayloads/grantFileAccessCard.json');
+const fileInfoCardTemplateJson = require('../adaptiveCardPayloads/fileInfoCard.json');
 
 const { Subscription } = require('../models/subscriptionModel');
 const { GoogleFile } = require('../models/googleFileModel');
@@ -90,11 +90,14 @@ function buildSubscribeCard(botId){
     };
 }
 
-function grantFileAccessCard(botId, fileId, googleUserInfo){
+function grantFileAccessCard(botId, googleFile, googleUserInfo){
     const grantFileAccessCardTemplate = new Template(grantFileAccessCardTemplateJson);
     const grantFileAccessCardData = {
         googleUserInfo,
-        fileId,
+        fileId: googleFile.id,
+        fileName: googleFile.name,
+        fileIconUrl: googleFile.iconLink,
+        fileOwnerEmail: googleFile.ownerEmail,
         botId
     }
     const grantFileAccessCard = grantFileAccessCardTemplate.expand({
@@ -107,6 +110,27 @@ function grantFileAccessCard(botId, fileId, googleUserInfo){
     };
 }
 
+function fileInfoCard(botId, googleFile){
+    const fileInfoCardTemplate = new Template(fileInfoCardTemplateJson);
+    const fileInfoCardData = {
+        fileId: googleFile.id,
+        fileName: googleFile.name,
+        fileIconUrl: googleFile.iconLink,
+        fileOwnerEmail: googleFile.ownerEmail,
+        fileUrl: googleFile.url,
+        botId
+    }
+    const fileInfoCard = fileInfoCardTemplate.expand({
+        $root: fileInfoCardData
+    });
+    
+    return {
+        isSuccessful: true,
+        card: fileInfoCard
+    };
+}
+
 exports.buildSubscriptionListCard = buildSubscriptionListCard;
 exports.buildSubscribeCard = buildSubscribeCard;
 exports.grantFileAccessCard = grantFileAccessCard;
+exports.fileInfoCard = fileInfoCard;

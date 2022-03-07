@@ -52,7 +52,7 @@ async function interactiveMessages(req, res) {
         const createGroupResponse = await rcAPI.createConversation([rcUserId], bot.token.access_token);
 
         if (!googleUser) {
-            await bot.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `auth` to authorize your account." });
+            await bot.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
             res.status(200);
             return;
         }
@@ -79,7 +79,7 @@ async function interactiveMessages(req, res) {
                 await subscriptionHandler.stopSubscriptionForUser(googleUser);
                 await revokeToken(googleUser);
                 await googleUser.destroy();
-                await bot.sendMessage(createGroupResponse.id, { text: "Successfully unauthorized." });
+                await bot.sendMessage(createGroupResponse.id, { text: "Successfully logged out." });
                 break;
             case 'subscribe':
                 const links = body.data.inputLinks.split(';');
@@ -152,15 +152,19 @@ async function interactiveMessages(req, res) {
                 break;
             case 'grantAccess':
                 await checkAndRefreshAccessToken(googleUser);
+                let isGrantAccessSuccessful = true;
                 for (const grantUserInfo of body.data.googleUserInfo) {
-                    const isGrantAccessSuccessful = await authorizationHandler.grantFileAccessToUser(googleUser, body.data.fileId, grantUserInfo, body.data.permissionRole);
-                    if(!isGrantAccessSuccessful)
-                    {
-                        await bot.sendMessage(groupId, { text: 'Failed to grant access.' });
+                    isGrantAccessSuccessful = await authorizationHandler.grantFileAccessToUser(googleUser, body.data.fileId, grantUserInfo, body.data.permissionRole);
+                    if (!isGrantAccessSuccessful) {
                         break;
                     }
                 }
-                await bot.sendMessage(groupId, { text: 'Access granted.' });
+                if (isGrantAccessSuccessful) {
+                    await bot.sendMessage(groupId, { text: 'Access granted.' });
+                }
+                else {
+                    await bot.sendMessage(groupId, { text: 'Failed to grant access. Only file owner can grant access.' });
+                }
                 break;
         }
     }

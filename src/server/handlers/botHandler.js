@@ -6,21 +6,23 @@ const rcAPI = require('../lib/rcAPI');
 const cardBuilder = require('../lib/cardBuilder');
 const { GoogleUser } = require('../models/googleUserModel');
 const { Template } = require('adaptivecards-templating');
+const { google } = require('googleapis')
 
 const configCardTemplateJson = require('../adaptiveCardPayloads/configCard.json');
+const { GoogleFile } = require('../models/googleFileModel');
 
 const helperText =
     'Hi, this is **Google Drive Bot**.\n\n' +
     'My features:\n' +
-    '1. Send `New File Share` notifications via Direct Message\n' +
-    '2. Send `New Comment` notifications for subscribed files to conversations\n' +
-    '3. Detect `Google File Share Link` posted in conversations and check for all members accesses\n\n' +
+    '1. Send `New File Share` notifications via Direct Message (realtime)\n' +
+    '2. Send `New Comment` notifications for subscribed files to conversations (realtime, daily, weekly)\n' +
+    '3. Detect `Google File Share Link` posted in conversations and check for all members accesses. File owner can then grant access.\n\n' +
     'My commands:\n' +
-    '1. `@bot auth`: **Authorize** your Google Account\n' +
-    '2. `@bot unauth`: **Unauthorize** your Google Account and **clear all** subscriptions created by it\n' +
-    '1. `@bot checkauth`: **Check** team members on their Google Account authorization status and remind those who don\'t have Google Account authorized\n' +
-    '3. `@bot sub`: **Create** a new subscription for `New Comment` under this channel\n' +
-    '4. `@bot list`: **List** all subscriptions for `New Comment` under this channel'
+    '1. `@bot login`: **Login** with your Google Account\n' +
+    '2. `@bot logout`: **Logout** your Google Account and **clear all** subscriptions created by it\n' +
+    '3. `@bot checkauth`: **Check** team members on their Google Account login status and remind those who don\'t have Google Account authorized\n' +
+    '4. `@bot sub`: **Create** a new subscription for `New Comment` under this channel\n' +
+    '5. `@bot list`: **List** all subscriptions for `New Comment` under this channel'
 
 const botHandler = async event => {
     try {
@@ -46,9 +48,9 @@ const botHandler = async event => {
                     case 'hello':
                         await botForMessage.sendMessage(cmdGroup.id, { text: 'hello' });
                         break;
-                    case 'auth':
+                    case 'login':
                         if (existingGoogleUser) {
-                            await botForMessage.sendMessage(createGroupResponse.id, { text: "You have already authorized." });
+                            await botForMessage.sendMessage(createGroupResponse.id, { text: "You have already logged in." });
                         }
                         else {
                             const oauthApp = getOAuthApp();
@@ -58,9 +60,9 @@ const botHandler = async event => {
                             await botForMessage.sendAdaptiveCard(createGroupResponse.id, authCard);
                         }
                         break;
-                    case 'unauth':
+                    case 'logout':
                         if (!existingGoogleUser) {
-                            await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `auth` to authorize your account." });
+                            await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                         }
                         else {
                             const unAuthCard = authorizationHandler.getUnAuthCard(existingGoogleUser.email, userId, botForMessage.id);
@@ -73,7 +75,7 @@ const botHandler = async event => {
                     case 'sub':
                     case 'subscribe':
                         if (!existingGoogleUser) {
-                            await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `auth` to authorize your account." });
+                            await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                             break;
                         }
                         const subscribeCardResponse = cardBuilder.buildSubscribeCard(botForMessage.id);
@@ -81,7 +83,7 @@ const botHandler = async event => {
                         break;
                     case 'config':
                         if (!existingGoogleUser) {
-                            await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `auth` to authorize your account." });
+                            await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                             break;
                         }
                         const configCardTemplate = new Template(configCardTemplateJson);
@@ -95,7 +97,7 @@ const botHandler = async event => {
                         break;
                     case 'list':
                         if (!existingGoogleUser) {
-                            await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `auth` to authorize your account." });
+                            await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                             break;
                         }
                         const subscriptionListCardResponse = await cardBuilder.buildSubscriptionListCard(botForMessage.id, cmdGroup.id);
@@ -138,7 +140,7 @@ const botHandler = async event => {
 
                     // if rc user has NO authorized Google Account, send an auth card
                     if (!googleUserForPost) {
-                        await botForPost.sendMessage(postGroupId, { text: `Google Drive file link detected. But ![:Person](${creatorId}) doesn't have an authorized Google Account. Please @me with \`auth\` command to authorize.` });
+                        await botForPost.sendMessage(postGroupId, { text: `Google Drive file link detected. But ![:Person](${creatorId}) doesn't have an authorized Google Account. Please @me with \`login\` command to authorize.` });
                         break;
                     }
 
@@ -146,6 +148,31 @@ const botHandler = async event => {
 
                     const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+\\?usp=sharing');
                     const fileId = googleFileLinkInPost.match(fileIdRegex)[1];
+
+                    let googleFile = await GoogleFile.findByPk(fileId);
+                    if (!googleFile) {
+                        const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUserForPost.accessToken}` } });
+                        try {
+                            const googleFileResponse = await drive.files.get({ fileId, fields: 'id, name, webViewLink, iconLink, owners' });
+                            googleFile = await GoogleFile.create({
+                                id: googleFileResponse.data.id,
+                                name: googleFileResponse.data.name,
+                                iconLink: googleFileResponse.data.iconLink,
+                                ownerEmail: googleFileResponse.data.owners[0].emailAddress,
+                                url: googleFileResponse.data.webViewLink
+                            });
+                        }
+                        // If the user posting file link cannot access the file (404), we don't do anything about this link
+                        catch (e) {
+                            console.log(e);
+                            if (e.response.status === 404) {
+                                break;
+                            }
+                        }
+                    }
+
+                    const fileInfoCardResponse = cardBuilder.fileInfoCard(botForPost.id, googleFile);
+                    await botForPost.sendAdaptiveCard(postGroupId, fileInfoCardResponse.card);
 
                     const userWithoutAccessInfo = [];
                     for (const id of checkAccountResult.userIdsWithGoogleAccount) {
@@ -175,7 +202,7 @@ const botHandler = async event => {
                             noAccessMessage += `![:Person](${user.rcUserId}) `;
                         }
                         await botForPost.sendMessage(postGroupId, { text: noAccessMessage });
-                        const grantFileAccessCardResponse = cardBuilder.grantFileAccessCard(botForPost.id, fileId, userWithoutAccessInfo.map(u => u.googleUserInfo));
+                        const grantFileAccessCardResponse = cardBuilder.grantFileAccessCard(botForPost.id, googleFile, userWithoutAccessInfo.map(u => u.googleUserInfo));
                         await botForPost.sendAdaptiveCard(postGroupId, grantFileAccessCardResponse.card);
                     }
                 }
@@ -197,7 +224,7 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
         for (const userId of userIdsWithoutGoogleAccount) {
             noAccountMessage += `![:Person](${userId}) `;
         }
-        noAccountMessage += '\n\nPlease @me with `auth` command to authorize.';
+        noAccountMessage += '\n\nPlease @me with `login` command to authorize.';
         await bot.sendMessage(groupId, { text: noAccountMessage });
     }
 

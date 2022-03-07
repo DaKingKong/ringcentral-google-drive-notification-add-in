@@ -16,17 +16,16 @@ async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken) {
     const membersInGroup = rcGroupInfo.members;
     const nonBotNonGuestMembersInGroup = [];
 
-    for (const memberId of membersInGroup) {
+    const bulkRes = await rcAPI.getBulkUserInfo(membersInGroup, accessToken);
+
+    for (const memberInfo of bulkRes) {
         try {
-            console.log(`fetching person: ${memberId}`);
-            // Case: a guest would return 404 response
-            const memberResponse = await rcAPI.getUserInfo(memberId, accessToken);
             // Case: a bot would end with '.bot.glip.net'
-            if (memberResponse.email && memberResponse.email.endsWith('.bot.glip.net')) {
+            if (memberInfo.email && memberInfo.email.endsWith('.bot.glip.net')) {
                 continue;
             }
 
-            nonBotNonGuestMembersInGroup.push(memberId);
+            nonBotNonGuestMembersInGroup.push(memberInfo.id);
         }
         catch (e) {
             if (e.message === 'Request failed with status code 404') {
@@ -174,6 +173,7 @@ async function grantFileAccessToUser(googleFileOwnerUser, fileId, grantUserInfo,
                 type: 'user'
             }
         });
+
         return true;
     }
     catch (e) {

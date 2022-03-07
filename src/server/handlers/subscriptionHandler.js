@@ -61,7 +61,7 @@ async function addFileSubscription(googleUser, groupId, botId, fileId, state, ho
     };
   }
 
-  const checkFileResponse = await drive.files.get({ fileId, fields: 'id, name, iconLink' });
+  const checkFileResponse = await drive.files.get({ fileId, fields: 'id, name, webViewLink, iconLink, owners' });
   if (!checkFileResponse.data.id) {
     return {
       subscriptionFileState: 'NotFound'
@@ -73,7 +73,9 @@ async function addFileSubscription(googleUser, groupId, botId, fileId, state, ho
     await GoogleFile.create({
       id: checkFileResponse.data.id,
       name: checkFileResponse.data.name,
-      iconLink: checkFileResponse.data.iconLink
+      iconLink: checkFileResponse.data.iconLink,
+      ownerEmail: checkFileResponse.data.owners[0].emailAddress,
+      url: checkFileResponse.data.webViewLink
     });
     fileName = checkFileResponse.data.name;
   }
@@ -91,7 +93,6 @@ async function addFileSubscription(googleUser, groupId, botId, fileId, state, ho
     fileId,
     // If state is not realtime, we need user to configure push notification frequency, so create sub as 'muted' until it's configured
     state: state === 'realtime' ? 'realtime' : 'muted',
-    stateBeforeMuted: state,
     cachedInfo: { commentNotifications: [] }
   });
 
@@ -161,26 +162,7 @@ async function muteSubscription(botId, groupId, fileId) {
   }
   const state = subscription.state;
   await subscription.update({
-    state: 'muted',
-    stateBeforeMuted: state
-  });
-}
-
-async function updateSubscription(botId, groupId, fileId) {
-  console.log(`resuming ${fileId}, with bot: ${botId} and group: ${groupId}`)
-  const subscription = await Subscription.findOne({
-    where: {
-      botId,
-      groupId,
-      fileId
-    }
-  })
-  if (!subscription) {
-    console.error('subscription not found.')
-  }
-  const stateBeforeMuted = subscription.stateBeforeMuted;
-  await subscription.update({
-    state: stateBeforeMuted
+    state: 'muted'
   });
 }
 
@@ -217,6 +199,5 @@ exports.createGlobalSubscription = createGlobalSubscription;
 exports.addFileSubscription = addFileSubscription;
 exports.setSubscriptionStateAndStartTime = setSubscriptionStateAndStartTime;
 exports.muteSubscription = muteSubscription;
-exports.updateSubscription = updateSubscription;
 exports.removeFileFromSubscription = removeFileFromSubscription;
 exports.stopSubscriptionForUser = stopSubscriptionForUser;
