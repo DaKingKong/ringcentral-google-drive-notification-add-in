@@ -33,6 +33,10 @@ exports.Subscription = sequelize.define('subscriptions', {
   startTime: {
     type: Sequelize.DATE,
   },
+  // to avoid duplicated New Comment messages
+  lastPushedCommentId:{
+    type: Sequelize.STRING,
+  },
   // cachedInfo = commentNotifications
   cachedInfo:{
     type: Sequelize.JSON

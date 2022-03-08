@@ -85,8 +85,11 @@ async function onReceiveNotification(googleUser) {
                 // NewComment = Comment with no Reply
                 const isNewComment = commentData.replies.length === 0;
                 console.log('drive.comments.get:', JSON.stringify(commentData, null, 2));
-                if (isEventNew(change.time, commentData.modifiedTime) && isNewComment && !commentData.author.me) {
+                if (isEventNew(change.time, commentData.modifiedTime) && isNewComment && !commentData.author.me && subscription.lastPushedCommentId != commentData.id) {
                     console.log('===========NEW COMMENT============');
+                    await subscription.update({
+                        lastPushedCommentId: commentData.id
+                    })
                     const cardData =
                     {
                         userAvatar: commentData.author.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",

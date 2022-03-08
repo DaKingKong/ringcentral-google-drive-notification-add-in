@@ -70,7 +70,13 @@ const botHandler = async event => {
                         }
                         break;
                     case 'checkauth':
-                        await checkMembersGoogleAccountAuth(botForMessage, cmdGroup.id);
+                        const checkAccessResult = await checkMembersGoogleAccountAuth(botForMessage, cmdGroup.id);
+                        if (checkAccessResult.returnMessage) {
+                            await botForMessage.sendMessage(cmdGroup.id, { text: checkAccessResult.returnMessage });
+                        }
+                        else {
+                            await botForMessage.sendMessage(cmdGroup.id, { text: 'All members authorized.' });
+                        }
                         break;
                     case 'sub':
                     case 'subscribe':
@@ -145,7 +151,10 @@ const botHandler = async event => {
                     }
 
                     const checkAccountResult = await checkMembersGoogleAccountAuth(botForPost, postGroupId);
-
+                    if (checkAccountResult.returnMessage) {
+                        await botForMessage.sendMessage(cmdGroup.id, { text: checkAccountResult.returnMessage });
+                    }
+                    
                     const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+\\?usp=sharing');
                     const fileId = googleFileLinkInPost.match(fileIdRegex)[1];
 
@@ -219,8 +228,9 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
     const inGroupUserInfo = await authorizationHandler.getInGroupRcUserGoogleAccountInfo(groupId, bot.token.access_token);
     const userIdsWithoutGoogleAccount = inGroupUserInfo.rcUserIdsWithoutGoogleAccount;
     const userIdsWithGoogleAccount = inGroupUserInfo.rcUserIdsWithGoogleAccount;
+    let noAccountMessage = null;
     if (userIdsWithoutGoogleAccount.length > 0) {
-        let noAccountMessage = 'Google Drive account not found for following users:\n\n'
+        noAccountMessage = 'Google Drive account not found for following users:\n\n'
         for (const userId of userIdsWithoutGoogleAccount) {
             noAccountMessage += `![:Person](${userId}) `;
         }
@@ -229,6 +239,7 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
     }
 
     return {
+        returnMessage: noAccountMessage,
         userIdsWithoutGoogleAccount,
         userIdsWithGoogleAccount
     }
