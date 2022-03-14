@@ -107,6 +107,10 @@ dist
 *.sqlite
 /.vscode/settings.json
 
-serverless-deploy/*
+serverless-deploy/env.yml
+serverless-deploy/serverless.yml
+serverless-deploy/*.js
+serverless-deploy/*.json
+serverless-deploy/**/
 public/*
 src/server/html/*
