@@ -89,7 +89,7 @@ async function oauthCallback(req, res) {
         res.send('Bot not found');
         return;
     }
-    const { accessToken, refreshToken, expires } = await oauthApp.code.getToken(req.url);
+    const { accessToken, refreshToken, expires } = await oauthApp.code.getToken(process.env.IS_PROD ? `/prod${req.url}` : req.url);
     if (!accessToken) {
         res.status(403);
         res.send('Params error');

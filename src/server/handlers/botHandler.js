@@ -88,13 +88,18 @@ const botHandler = async event => {
                         await botForMessage.sendAdaptiveCard(cmdGroup.id, subscribeCardResponse.card);
                         break;
                     case 'config':
+                        if (cmdGroup.id != createGroupResponse.id) {
+                            await botForMessage.sendMessage(cmdGroup.id, { text: "`config` command is only supported in Direct Message." });
+                            break;
+                        }
                         if (!existingGoogleUser) {
                             await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                             break;
                         }
                         const configCardTemplate = new Template(configCardTemplateJson);
                         const configCardData = {
-                            botId: botForMessage.id
+                            botId: botForMessage.id,
+                            isNewFileNotificationOn: existingGoogleUser.isReceiveNewFile
                         }
                         const configCard = configCardTemplate.expand({
                             $root: configCardData
@@ -154,7 +159,7 @@ const botHandler = async event => {
                     if (checkAccountResult.returnMessage) {
                         await botForMessage.sendMessage(cmdGroup.id, { text: checkAccountResult.returnMessage });
                     }
-                    
+
                     const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+\\?usp=sharing');
                     const fileId = googleFileLinkInPost.match(fileIdRegex)[1];
 

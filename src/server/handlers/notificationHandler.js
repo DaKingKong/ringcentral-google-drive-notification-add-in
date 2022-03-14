@@ -15,7 +15,7 @@ const NEW_EVENT_TIME_THRESHOLD_IN_SECONDS = 10
 function isEventNew(dateTime1, dateTime2) {
     const timeDiff = moment(dateTime1).diff(dateTime2, 'seconds');
     console.log(`Time Diff: ${dateTime1} and ${dateTime2} : ${timeDiff}`);
-    return timeDiff < NEW_EVENT_TIME_THRESHOLD_IN_SECONDS;
+    return timeDiff < NEW_EVENT_TIME_THRESHOLD_IN_SECONDS && timeDiff >= 0;
 }
 
 async function notification(req, res) {
@@ -85,6 +85,7 @@ async function onReceiveNotification(googleUser) {
                 // NewComment = Comment with no Reply
                 const isNewComment = commentData.replies.length === 0;
                 console.log('drive.comments.get:', JSON.stringify(commentData, null, 2));
+                console.log('drive.comments.get:', subscription.lastPushedCommentId);
                 if (isEventNew(change.time, commentData.modifiedTime) && isNewComment && !commentData.author.me && subscription.lastPushedCommentId != commentData.id) {
                     console.log('===========NEW COMMENT============');
                     await subscription.update({

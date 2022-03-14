@@ -11,7 +11,7 @@
         },
         {
             "type": "TextBlock",
-            "text": "Create a new subscription:",
+            "text": "New File Share notification",
             "wrap": true,
             "weight": "Bolder"
         },
@@ -20,32 +20,28 @@
             "actions": [
                 {
                     "type": "Action.Submit",
-                    "title": "Create",
+                    "title": "Enable",
                     "data": {
-                        "actionType": "subCard",
+                        "actionType": "turnOnNewFileShareNotification",
                         "botId": "${botId}"
                     }
                 }
-            ]
-        },
-        {
-            "type": "TextBlock",
-            "text": "List all subscriptions:",
-            "wrap": true,
-            "weight": "Bolder"
+            ],
+            "$when": "${!isNewFileNotificationOn}"
         },
         {
             "type": "ActionSet",
             "actions": [
                 {
                     "type": "Action.Submit",
-                    "title": "List",
+                    "title": "Disable",
                     "data": {
-                        "actionType": "listCard",
+                        "actionType": "turnOffNewFileShareNotification",
                         "botId": "${botId}"
                     }
                 }
-            ]
+            ],
+            "$when": "${isNewFileNotificationOn}"
         },
         {
             "type": "TextBlock",

@@ -52,8 +52,9 @@ async function interactiveMessages(req, res) {
         const createGroupResponse = await rcAPI.createConversation([rcUserId], bot.token.access_token);
 
         if (!googleUser) {
-            await bot.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
+            await bot.sendMessage(groupId, { text: `![:Person](${rcUserId}) Google Drive account not found. Please message me with \`login\` to login.` });
             res.status(200);
+            res.json('OK')
             return;
         }
 
@@ -139,16 +140,26 @@ async function interactiveMessages(req, res) {
             case 'replyComment':
                 await checkAndRefreshAccessToken(googleUser);
                 const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
-                await drive.replies.create({
-                    commentId: body.data.commentId,
-                    fileId: body.data.fileId,
-                    fields: '*',
-                    requestBody: {
-                        content: body.data.replyText
+                try {
+                    await drive.replies.create({
+                        commentId: body.data.commentId,
+                        fileId: body.data.fileId,
+                        fields: '*',
+                        requestBody: {
+                            content: body.data.replyText
+                        }
+                    });
+                    // notify user the result of the action in RingCentral App conversation
+                    await bot.sendMessage(groupId, { text: 'Comment replied.' });
+                }
+                catch (e) {
+                    if (e.response.status === 403) {
+                        await bot.sendMessage(groupId, { text: `![:Person](${rcUserId}) Your Google Account (${googleUser.email}) does not have access to reply comment under this file.` });
+                        res.status(200);
+                        res.json('OK')
+                        return;
                     }
-                });
-                // notify user the result of the action in RingCentral App conversation
-                await bot.sendMessage(groupId, { text: 'Comment replied.' });
+                }
                 break;
             case 'grantAccess':
                 await checkAndRefreshAccessToken(googleUser);
@@ -165,6 +176,18 @@ async function interactiveMessages(req, res) {
                 else {
                     await bot.sendMessage(groupId, { text: 'Failed to grant access. Only file owner can grant access.' });
                 }
+                break;
+            case 'turnOnNewFileShareNotification':
+                await googleUser.update({
+                    isReceiveNewFile: true
+                })
+                await bot.sendMessage(groupId, { text: 'New File Share notifications turned ON. You will START receiving notifications when there is a new file shared with you.' });
+                break;
+            case 'turnOffNewFileShareNotification':
+                await googleUser.update({
+                    isReceiveNewFile: false
+                })
+                await bot.sendMessage(groupId, { text: 'New File Share notifications turned OFF. You will STOP receiving notifications when there is a new file shared with you.' });
                 break;
         }
     }

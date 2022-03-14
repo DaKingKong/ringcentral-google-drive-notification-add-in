@@ -1,4 +1,3 @@
-const express = require('express');
 const { extendApp } = require('ringcentral-chatbot-core');
 
 const { botHandler } = require('./handlers/botHandler');
@@ -32,7 +31,4 @@ exports.appExtend = (app) => {
   app.get('/oauth-callback', authorizationHandler.oauthCallback);
   app.post('/notification', notificationHandler.notification);
   app.post('/interactive-messages', interactiveMessageHandler.interactiveMessages);
-
-  // google domain verification html
-  app.use('/', express.static(__dirname + '/html'));
 }
