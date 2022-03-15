@@ -6,10 +6,6 @@ const Op = require('sequelize').Op;
 const rcAPI = require('../lib/rcAPI');
 const subscriptionHandler = require('./subscriptionHandler');
 
-const { Template } = require('adaptivecards-templating');
-const authCardTemplate = require('../adaptiveCardPayloads/authCard.json');
-const unAuthCardTemplate = require('../adaptiveCardPayloads/unAuthCard.json');
-
 async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken) {
     const rcGroupInfo = await rcAPI.getGroupInfo(groupId, accessToken);
 
@@ -53,30 +49,6 @@ async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken) {
     return inGroupUserInfo;
 }
 
-function getAuthCard(authLink) {
-    const template = new Template(authCardTemplate);
-    const cardData = {
-        link: authLink
-    }
-    const card = template.expand({
-        $root: cardData
-    });
-    return card;
-}
-
-function getUnAuthCard(googleUserEmail, rcUserId, botId) {
-    const template = new Template(unAuthCardTemplate);
-    const cardData = {
-        googleUserEmail,
-        rcUserId,
-        botId
-    }
-    const card = template.expand({
-        $root: cardData
-    });
-    return card;
-}
-
 async function oauthCallback(req, res) {
     const queryParams = new URLSearchParams(req.query.state)
     const botId = queryParams.get('botId');
@@ -89,7 +61,8 @@ async function oauthCallback(req, res) {
         res.send('Bot not found');
         return;
     }
-    const { accessToken, refreshToken, expires } = await oauthApp.code.getToken(process.env.IS_PROD ? `/prod${req.url}` : req.url);
+
+    const { accessToken, refreshToken, expires } = await oauthApp.code.getToken(process.env.IS_PROD === 'true' ? `/prod${req.url}` : req.url);
     if (!accessToken) {
         res.status(403);
         res.send('Params error');
@@ -182,8 +155,6 @@ async function grantFileAccessToUser(googleFileOwnerUser, fileId, grantUserInfo,
 }
 
 exports.getInGroupRcUserGoogleAccountInfo = getInGroupRcUserGoogleAccountInfo;
-exports.getAuthCard = getAuthCard;
-exports.getUnAuthCard = getUnAuthCard;
 exports.oauthCallback = oauthCallback;
 exports.checkUserFileAccess = checkUserFileAccess;
 exports.grantFileAccessToUser = grantFileAccessToUser;

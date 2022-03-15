@@ -17,8 +17,8 @@ async function createGlobalSubscription(googleUser) {
     pageToken,
     pageSize: 3,
     includeCorpusRemovals: true,
-    includeTeamDriveItems: true,
-    supportsTeamDrives: true,
+    includeItemsFromAllDrives: false,
+    supportsAllDrives: false,
     requestBody: {
       id: `${currentDate.getDate()}-${currentDate.getHours()}-${currentDate.getMinutes()}-${currentDate.getSeconds()}`,
       type: 'web_hook',

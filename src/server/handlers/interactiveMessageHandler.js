@@ -5,8 +5,6 @@ const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { revokeToken, checkAndRefreshAccessToken } = require('../lib/oauth');
 const cardBuilder = require('../lib/cardBuilder');
 const rcAPI = require('../lib/rcAPI');
-const { Template } = require('adaptivecards-templating');
-const subscribeCardTemplateJson = require('../adaptiveCardPayloads/subscribeCard.json');
 
 const subscriptionHandler = require('./subscriptionHandler');
 const authorizationHandler = require('./authorizationHandler');
@@ -60,15 +58,15 @@ async function interactiveMessages(req, res) {
 
         switch (body.data.actionType) {
             case 'unAuthCard':
-                const unAuthCard = authorizationHandler.getUnAuthCard(googleUser.email, rcUserId, bot.id);
+                const unAuthCard = cardBuilder.unAuthCard(googleUser.email, rcUserId, bot.id);
                 await bot.sendAdaptiveCard(createGroupResponse.id, unAuthCard);
                 break;
             case 'subCard':
-                const subscribeCardResponse = cardBuilder.buildSubscribeCard(bot.id);
-                await bot.sendAdaptiveCard(groupId, subscribeCardResponse.card);
+                const subscribeCard = cardBuilder.subscribeCard(bot.id);
+                await bot.sendAdaptiveCard(groupId, subscribeCard);
                 break;
             case 'listCard':
-                const subscriptionListCardResponse = await cardBuilder.buildSubscriptionListCard(bot.id, groupId);
+                const subscriptionListCardResponse = await cardBuilder.subscriptionListCard(bot.id, groupId);
                 if (subscriptionListCardResponse.isSuccessful) {
                     await bot.sendAdaptiveCard(groupId, subscriptionListCardResponse.card);
                 }
@@ -107,23 +105,15 @@ async function interactiveMessages(req, res) {
                 }
                 break;
             case 'subscriptionConfig':
-                const subscribeCardTemplate = new Template(subscribeCardTemplateJson);
-                const subscribeCardData = {
-                    mode: 'config',
-                    title: 'Subscription Config',
-                    subscriptionId: body.data.subscriptionId,
-                    fileId: body.data.fileId,
-                    iconLink: body.data.iconLink,
-                    fileName: body.data.fileName,
-                    rcUseName: body.data.rcUserName,
-                    botId: bot.id,
-                    subscriptionState: body.data.subscriptionState
-                }
-                const subscribeCard = subscribeCardTemplate.expand({
-                    $root: subscribeCardData
-                });
-                console.log(JSON.stringify(subscribeCard, null, 2));
-                await bot.sendAdaptiveCard(groupId, subscribeCard);
+                const subscribeConfigCard = cardBuilder.subscribeConfigCard(
+                    body.data.subscriptionId,
+                    body.data.fileId,
+                    body.data.iconLink,
+                    body.data.fileName,
+                    bot.id,
+                    body.data.subscriptionState
+                );
+                await bot.sendAdaptiveCard(groupId, subscribeConfigCard);
                 break;
             case 'muteSubscription':
                 await subscriptionHandler.muteSubscription(bot.id, groupId, body.data.fileId);

@@ -3,11 +3,17 @@ const subscriptionListCardTemplateJson = require('../adaptiveCardPayloads/subscr
 const subscribeCardTemplateJson = require('../adaptiveCardPayloads/subscribeCard.json');
 const grantFileAccessCardTemplateJson = require('../adaptiveCardPayloads/grantFileAccessCard.json');
 const fileInfoCardTemplateJson = require('../adaptiveCardPayloads/fileInfoCard.json');
+const authCardTemplateJson = require('../adaptiveCardPayloads/authCard.json');
+const unAuthCardTemplateJson = require('../adaptiveCardPayloads/unAuthCard.json');
+const newCommentCardTemplateJson = require('../adaptiveCardPayloads/newCommentCard.json');
+const newFileSharedWithMeCardTemplateJson = require('../adaptiveCardPayloads/newFileShareWithMeCard.json');
+const commentDigestCardTemplateJson = require('../adaptiveCardPayloads/commentDigestCard.json');
+const configCardTemplateJson = require('../adaptiveCardPayloads/configCard.json');
 
 const { Subscription } = require('../models/subscriptionModel');
 const { GoogleFile } = require('../models/googleFileModel');
 
-async function buildSubscriptionListCard(botId, groupId) {
+async function subscriptionListCard(botId, groupId) {
     const subscriptionListCardTemplate = new Template(subscriptionListCardTemplateJson);
     const subscriptions = await Subscription.findAll({
         where: {
@@ -73,26 +79,41 @@ async function buildSubscriptionListCard(botId, groupId) {
     };
 }
 
-function buildSubscribeCard(botId){
-    const subscribeCardTemplate = new Template(subscribeCardTemplateJson);
-    const subscribeCardData = {
+function subscribeCard(botId) {
+    const template = new Template(subscribeCardTemplateJson);
+    const cardData = {
         mode: 'sub',
         title: 'Subscribe',
         botId
     }
-    const subscribeCard = subscribeCardTemplate.expand({
-        $root: subscribeCardData
+    const card = template.expand({
+        $root: cardData
     });
-    
-    return {
-        isSuccessful: true,
-        card: subscribeCard
-    };
+    return card;
 }
 
-function grantFileAccessCard(botId, googleFile, googleUserInfo){
-    const grantFileAccessCardTemplate = new Template(grantFileAccessCardTemplateJson);
-    const grantFileAccessCardData = {
+function subscribeConfigCard(subscriptionId, fileId, iconLink, fileName, botId, subscriptionState) {
+    const template = new Template(subscribeCardTemplateJson);
+    const cardData = {
+        mode: 'config',
+        title: 'Subscription Config',
+        subscriptionId,
+        fileId,
+        iconLink,
+        fileName,
+        botId,
+        subscriptionState
+    }
+    const card = template.expand({
+        $root: cardData
+    });
+    return card;
+}
+
+
+function grantFileAccessCard(botId, googleFile, googleUserInfo) {
+    const template = new Template(grantFileAccessCardTemplateJson);
+    const cardData = {
         googleUserInfo,
         fileId: googleFile.id,
         fileName: googleFile.name,
@@ -100,19 +121,15 @@ function grantFileAccessCard(botId, googleFile, googleUserInfo){
         fileOwnerEmail: googleFile.ownerEmail,
         botId
     }
-    const grantFileAccessCard = grantFileAccessCardTemplate.expand({
-        $root: grantFileAccessCardData
+    const card = template.expand({
+        $root: cardData
     });
-    
-    return {
-        isSuccessful: true,
-        card: grantFileAccessCard
-    };
+    return card;
 }
 
-function fileInfoCard(botId, googleFile){
-    const fileInfoCardTemplate = new Template(fileInfoCardTemplateJson);
-    const fileInfoCardData = {
+function fileInfoCard(botId, googleFile) {
+    const template = new Template(fileInfoCardTemplateJson);
+    const cardData = {
         fileId: googleFile.id,
         fileName: googleFile.name,
         fileIconUrl: googleFile.iconLink,
@@ -120,17 +137,104 @@ function fileInfoCard(botId, googleFile){
         fileUrl: googleFile.url,
         botId
     }
-    const fileInfoCard = fileInfoCardTemplate.expand({
-        $root: fileInfoCardData
+    const card = template.expand({
+        $root: cardData
     });
-    
-    return {
-        isSuccessful: true,
-        card: fileInfoCard
-    };
+    return card;
 }
 
-exports.buildSubscriptionListCard = buildSubscriptionListCard;
-exports.buildSubscribeCard = buildSubscribeCard;
+function authCard(authLink) {
+    const template = new Template(authCardTemplateJson);
+    const cardData = {
+        link: authLink
+    }
+    const card = template.expand({
+        $root: cardData
+    });
+    return card;
+}
+
+function unAuthCard(googleUserEmail, rcUserId, botId) {
+    const template = new Template(unAuthCardTemplateJson);
+    const cardData = {
+        googleUserEmail,
+        rcUserId,
+        botId
+    }
+    const card = template.expand({
+        $root: cardData
+    });
+    return card;
+}
+
+function newCommentCard(rawCardData) {
+    const template = new Template(newCommentCardTemplateJson);
+    const cardData = {
+        userAvatar: rawCardData.userAvatar,
+        username: rawCardData.username,
+        userEmail: rawCardData.userEmail,
+        fileIconUrl: rawCardData.fileIconUrl,
+        fileName: rawCardData.fileName,
+        commentContent: rawCardData.commentContent,
+        quotedContent: rawCardData.quotedContent,
+        fileUrl: rawCardData.fileUrl,
+        commentIconUrl: rawCardData.commentIconUrl,
+        userId: rawCardData.userId,
+        subscriptionId: rawCardData.subscriptionId,
+        commentId: rawCardData.commentId,
+        fileId: rawCardData.fileId,
+        botId: rawCardData.botId,
+    }
+    const card = template.expand({
+        $root: cardData
+    });
+    return card;
+}
+
+function newFileShareCard(rawCardData) {
+    const template = new Template(newFileSharedWithMeCardTemplateJson);
+    const cardData = {
+        userAvatar: rawCardData.userAvatar,
+        username: rawCardData.username,
+        userEmail: rawCardData.userEmail,
+        fileIconUrl: rawCardData.fileIconUrl,
+        fileName: rawCardData.fileName,
+        fileUrl: rawCardData.fileUrl
+    };
+    const card = template.expand({
+        $root: cardData
+    });
+    return card;
+}
+
+function commentDigestCard(rawCardData) {
+    const template = new Template(commentDigestCardTemplateJson);
+    const card = template.expand({
+        $root: rawCardData
+    });
+    return card;
+}
+
+function configCard(botId, isNewFileNotificationOn) {
+    const configCardTemplate = new Template(configCardTemplateJson);
+    const cardData = {
+        botId,
+        isNewFileNotificationOn
+    }
+    const card = configCardTemplate.expand({
+        $root: cardData
+    });
+    return card;
+}
+
+exports.subscriptionListCard = subscriptionListCard;
+exports.subscribeCard = subscribeCard;
+exports.subscribeConfigCard = subscribeConfigCard;
 exports.grantFileAccessCard = grantFileAccessCard;
 exports.fileInfoCard = fileInfoCard;
+exports.authCard = authCard;
+exports.unAuthCard = unAuthCard;
+exports.newCommentCard = newCommentCard;
+exports.newFileShareCard = newFileShareCard;
+exports.commentDigestCard = commentDigestCard;
+exports.configCard = configCard;

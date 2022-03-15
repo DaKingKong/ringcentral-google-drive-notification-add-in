@@ -62,6 +62,7 @@
                 }
             ],
             "horizontalAlignment": "Left",
+            "spacing": "Medium",
             "separator": true
         },
         {
@@ -123,7 +124,42 @@
                 }
             ],
             "horizontalAlignment": "Left",
+            "spacing": "Medium",
             "separator": true
+        },
+        {
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "Image",
+                            "url": "https://raw.githubusercontent.com/ringcentral/ringcentral-google-drive-notification-add-in/master/staticResources/feedback.png",
+                            "width": "20px",
+                            "horizontalAlignment": "Left"
+                        }
+                    ],
+                    "width": "auto"
+                },
+                {
+                    "type": "Column",
+                    "width": "stretch",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "[Feedback](https://github.com/ringcentral/ringcentral-google-drive-notification-add-in/issues/new)",
+                            "wrap": true,
+                            "size": "Small",
+                            "horizontalAlignment": "Left"
+                        }
+                    ],
+                    "spacing": "Small",
+                    "verticalContentAlignment": "Center"
+                }
+            ],
+            "horizontalAlignment": "Left",
+            "spacing": "Medium"
         }
     ]
 }

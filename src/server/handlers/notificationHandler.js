@@ -1,16 +1,13 @@
 const { google } = require('googleapis')
 const moment = require('moment');
 const { GoogleUser } = require('../models/googleUserModel');
+const { GoogleFile } = require('../models/googleFileModel');
 const { Subscription } = require('../models/subscriptionModel');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { checkAndRefreshAccessToken } = require('../lib/oauth');
-const { Template } = require('adaptivecards-templating');
+const cardBuilder = require('../lib/cardBuilder');
 
-const newCommentCardTemplate = require('../adaptiveCardPayloads/newCommentCard.json');
-const newFileSharedWithMeCardTemplate = require('../adaptiveCardPayloads/newFileShareWithMeCard.json');
-const commentDigestCardTemplate = require('../adaptiveCardPayloads/commentDigestCard.json');
-
-const NEW_EVENT_TIME_THRESHOLD_IN_SECONDS = 10
+const NEW_EVENT_TIME_THRESHOLD_IN_SECONDS = 30
 
 function isEventNew(dateTime1, dateTime2) {
     const timeDiff = moment(dateTime1).diff(dateTime2, 'seconds');
@@ -61,12 +58,36 @@ async function onReceiveNotification(googleUser) {
     console.log(`Latest changes: ${JSON.stringify(latestChanges, null, 2)}`)
     for (const change of latestChanges) {
         const fileId = change.fileId;
-
         const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,ownedByMe' })
         const fileData = fileResponse.data;
+        const googleFile = await GoogleFile.findByPk(fileId);
 
+        // If file name is changed, update that in db
+        if (googleFile && fileData.name != googleFile.name) {
+            await googleFile.update({
+                name: fileData.name
+            });
+        }
+
+        // Case: New File Share With Me
+        if (!fileData.ownedByMe && googleUser.isReceiveNewFile && fileData.sharedWithMeTime && isEventNew(change.time, fileData.sharedWithMeTime)) {
+            console.log('===========NEW FILE============');
+            console.log('drive.files.get:', fileData)
+            const owner = fileData.owners[0];
+            const cardData = {
+                userAvatar: owner.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
+                username: owner.displayName,
+                userEmail: owner.emailAddress ?? "",
+                fileIconUrl: fileData.iconLink,
+                fileName: fileData.name,
+                fileUrl: fileData.webViewLink
+            };
+            const card = cardBuilder.newFileShareCard(cardData);
+            // Send adaptive card to your channel in RingCentral App
+            await bot.sendAdaptiveCard(googleUser.rcDMGroupId, card);
+        }
         // Case: New Comment
-        if (fileData.ownedByMe) {
+        else {
             const subscriptions = await Subscription.findAll({
                 where: {
                     fileId,
@@ -112,10 +133,7 @@ async function onReceiveNotification(googleUser) {
                         continue;
                     }
                     else if (subscription.state === 'realtime') {
-                        const template = new Template(newCommentCardTemplate);
-                        const card = template.expand({
-                            $root: cardData
-                        });
+                        const card = cardBuilder.newCommentCard(cardData);
                         // Send adaptive card to your channel in RingCentral App
                         await bot.sendAdaptiveCard(subscription.groupId, card);
                     }
@@ -128,29 +146,6 @@ async function onReceiveNotification(googleUser) {
                         });
                     }
                 }
-            }
-        }
-        // Case: New File Share With Me
-        else {
-            if (googleUser.isReceiveNewFile && fileData.sharedWithMeTime && isEventNew(change.time, fileData.sharedWithMeTime)) {
-                console.log('===========NEW FILE============');
-                console.log('drive.files.get:', fileData)
-                const owner = fileData.owners[0];
-                const cardData = {
-                    userAvatar: owner.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
-                    username: owner.displayName,
-                    userEmail: owner.emailAddress ?? "",
-                    fileIconUrl: fileData.iconLink,
-                    fileName: fileData.name,
-                    fileUrl: fileData.webViewLink
-                };
-
-                const template = new Template(newFileSharedWithMeCardTemplate);
-                const card = template.expand({
-                    $root: cardData
-                });
-                // Send adaptive card to your channel in RingCentral App
-                await bot.sendAdaptiveCard(googleUser.rcDMGroupId, card);
             }
         }
     }
@@ -183,13 +178,7 @@ async function SendDigestNotification(subscriptions) {
             cardData.commentNotifications = cardData.commentNotifications.concat(sub.cachedInfo.commentNotifications);
         }
 
-        console.log(JSON.stringify(cardData, null, 2))
-
-        const template = new Template(commentDigestCardTemplate);
-        const card = template.expand({
-            $root: cardData
-        });
-
+        const card = cardBuilder.commentDigestCard(cardData);
         // Send adaptive card to your channel in RingCentral App
         await bot.sendAdaptiveCard(groupId, card);
 

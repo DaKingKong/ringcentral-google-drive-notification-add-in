@@ -5,10 +5,8 @@ const { getOAuthApp } = require('../lib/oauth');
 const rcAPI = require('../lib/rcAPI');
 const cardBuilder = require('../lib/cardBuilder');
 const { GoogleUser } = require('../models/googleUserModel');
-const { Template } = require('adaptivecards-templating');
 const { google } = require('googleapis')
 
-const configCardTemplateJson = require('../adaptiveCardPayloads/configCard.json');
 const { GoogleFile } = require('../models/googleFileModel');
 
 const helperText =
@@ -22,7 +20,8 @@ const helperText =
     '2. `@bot logout`: **Logout** your Google Account and **clear all** subscriptions created by it\n' +
     '3. `@bot checkauth`: **Check** team members on their Google Account login status and remind those who don\'t have Google Account authorized\n' +
     '4. `@bot sub`: **Create** a new subscription for `New Comment` under this channel\n' +
-    '5. `@bot list`: **List** all subscriptions for `New Comment` under this channel'
+    '5. `@bot list`: **List** all subscriptions for `New Comment` under this channel\n\n' +
+    'Note: It\'s recommended to add me into a team that has `<50` members for good `response speed` and avoid `too many subscriptions` from different members.'
 
 const botHandler = async event => {
     try {
@@ -56,7 +55,8 @@ const botHandler = async event => {
                             const oauthApp = getOAuthApp();
                             const authLink = `${oauthApp.code.getUri({
                                 state: `botId=${botForMessage.id}&rcUserId=${userId}`
-                            })}&access_type=offline`; const authCard = authorizationHandler.getAuthCard(authLink);
+                            })}&access_type=offline`; 
+                            const authCard = cardBuilder.authCard(authLink);
                             await botForMessage.sendAdaptiveCard(createGroupResponse.id, authCard);
                         }
                         break;
@@ -65,7 +65,7 @@ const botHandler = async event => {
                             await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                         }
                         else {
-                            const unAuthCard = authorizationHandler.getUnAuthCard(existingGoogleUser.email, userId, botForMessage.id);
+                            const unAuthCard = cardBuilder.unAuthCard(existingGoogleUser.email, userId, botForMessage.id);
                             await botForMessage.sendAdaptiveCard(createGroupResponse.id, unAuthCard);
                         }
                         break;
@@ -84,8 +84,8 @@ const botHandler = async event => {
                             await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                             break;
                         }
-                        const subscribeCardResponse = cardBuilder.buildSubscribeCard(botForMessage.id);
-                        await botForMessage.sendAdaptiveCard(cmdGroup.id, subscribeCardResponse.card);
+                        const subscribeCard = cardBuilder.subscribeCard(botForMessage.id);
+                        await botForMessage.sendAdaptiveCard(cmdGroup.id, subscribeCard);
                         break;
                     case 'config':
                         if (cmdGroup.id != createGroupResponse.id) {
@@ -96,14 +96,7 @@ const botHandler = async event => {
                             await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                             break;
                         }
-                        const configCardTemplate = new Template(configCardTemplateJson);
-                        const configCardData = {
-                            botId: botForMessage.id,
-                            isNewFileNotificationOn: existingGoogleUser.isReceiveNewFile
-                        }
-                        const configCard = configCardTemplate.expand({
-                            $root: configCardData
-                        });
+                        const configCard = cardBuilder.configCard(botForMessage.id, existingGoogleUser.isReceiveNewFile);
                         await botForMessage.sendAdaptiveCard(cmdGroup.id, configCard);
                         break;
                     case 'list':
@@ -111,7 +104,7 @@ const botHandler = async event => {
                             await botForMessage.sendMessage(createGroupResponse.id, { text: "Google Drive account not found. Please type `login` to authorize your account." });
                             break;
                         }
-                        const subscriptionListCardResponse = await cardBuilder.buildSubscriptionListCard(botForMessage.id, cmdGroup.id);
+                        const subscriptionListCardResponse = await cardBuilder.subscriptionListCard(botForMessage.id, cmdGroup.id);
                         if (subscriptionListCardResponse.isSuccessful) {
                             await botForMessage.sendAdaptiveCard(cmdGroup.id, subscriptionListCardResponse.card);
                         }
@@ -185,8 +178,8 @@ const botHandler = async event => {
                         }
                     }
 
-                    const fileInfoCardResponse = cardBuilder.fileInfoCard(botForPost.id, googleFile);
-                    await botForPost.sendAdaptiveCard(postGroupId, fileInfoCardResponse.card);
+                    const fileInfoCard = cardBuilder.fileInfoCard(botForPost.id, googleFile);
+                    await botForPost.sendAdaptiveCard(postGroupId, fileInfoCard);
 
                     const userWithoutAccessInfo = [];
                     for (const id of checkAccountResult.userIdsWithGoogleAccount) {
@@ -216,8 +209,8 @@ const botHandler = async event => {
                             noAccessMessage += `![:Person](${user.rcUserId}) `;
                         }
                         await botForPost.sendMessage(postGroupId, { text: noAccessMessage });
-                        const grantFileAccessCardResponse = cardBuilder.grantFileAccessCard(botForPost.id, googleFile, userWithoutAccessInfo.map(u => u.googleUserInfo));
-                        await botForPost.sendAdaptiveCard(postGroupId, grantFileAccessCardResponse.card);
+                        const grantFileAccessCard = cardBuilder.grantFileAccessCard(botForPost.id, googleFile, userWithoutAccessInfo.map(u => u.googleUserInfo));
+                        await botForPost.sendAdaptiveCard(postGroupId, grantFileAccessCard);
                     }
                 }
                 break;
