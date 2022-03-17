@@ -1,3 +1,4 @@
+const express = require('express');
 const { extendApp } = require('ringcentral-chatbot-core');
 
 const { botHandler } = require('./handlers/botHandler');
@@ -24,6 +25,7 @@ exports.appExtend = (app) => {
 
   extendApp(app, skills, botHandler, botConfig);
   app.listen(process.env.RINGCENTRAL_CHATBOT_EXPRESS_PORT);
+  app.get('/is-alive', (req, res) => { res.send('OK'); });
 
   console.log('server running...');
   console.log(`bot oauth uri: ${process.env.RINGCENTRAL_CHATBOT_SERVER}${botConfig.botRoute}/oauth`);
@@ -31,4 +33,7 @@ exports.appExtend = (app) => {
   app.get('/oauth-callback', authorizationHandler.oauthCallback);
   app.post('/notification', notificationHandler.notification);
   app.post('/interactive-messages', interactiveMessageHandler.interactiveMessages);
+
+  // static hosting home page
+  app.use('/', express.static(__dirname + '/html'));
 }

@@ -10,7 +10,6 @@ async function createGlobalSubscription(googleUser) {
   const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
 
   // Step.1: [INSERT]Create a new webhook subscription on 3rd party platform with their API. For most cases, you would want to define what resources/events you want to subscribe to as well.
-  const currentDate = new Date();//TODO: to be deleted
   const tokenResponse = await drive.changes.getStartPageToken();
   const pageToken = tokenResponse.data.startPageToken;
   const watchResponse = await drive.changes.watch({
@@ -20,7 +19,7 @@ async function createGlobalSubscription(googleUser) {
     includeItemsFromAllDrives: false,
     supportsAllDrives: false,
     requestBody: {
-      id: `${currentDate.getDate()}-${currentDate.getHours()}-${currentDate.getMinutes()}-${currentDate.getSeconds()}`,
+      id: generate(),
       type: 'web_hook',
       address: `${process.env.RINGCENTRAL_CHATBOT_SERVER}/notification`,
       expiration: 86400000 + new Date().getTime(),
