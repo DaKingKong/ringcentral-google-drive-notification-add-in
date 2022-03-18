@@ -14,7 +14,7 @@ const helperText =
     'My features:\n' +
     '1. Send `New File Share` notifications via Direct Message (realtime)\n' +
     '2. Send `New Comment` notifications for subscribed files to conversations (realtime, daily, weekly)\n' +
-    '3. Detect `Google File Share Link` posted in conversations and check for all members accesses. File owner can then grant access.\n\n' +
+    '3. Detect `Google File Link` posted in conversations and check for all members accesses. File owner can then grant access.\n\n' +
     'My commands:\n' +
     '1. `@bot login`: **Login** with your Google Account\n' +
     '2. `@bot logout`: **Logout** your Google Account and **clear all** subscriptions created by it\n' +
@@ -115,6 +115,7 @@ const botHandler = async event => {
                     case 'help':
                         await botForMessage.sendMessage(cmdGroup.id, { text: helperText });
                     default:
+                        await botForMessage.sendMessage(cmdGroup.id, { text: helperText });
                         break;
 
                 }
@@ -123,7 +124,7 @@ const botHandler = async event => {
                 const { text: postText, groupId: postGroupId, creatorId } = event.message.body;
                 console.log(`=====event.PostAdded=====${JSON.stringify(event)}`);
                 if (postText) {
-                    const googleFileLinkRegex = new RegExp('https://.+google.com/.+?/d/.+?/.+\\?usp=sharing', 'g');
+                    const googleFileLinkRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+', 'g');
                     // Note: RingCentral App converts links to [{link}](link) format...so we'd have at least 2 occurrences for 1 link input
                     const matches = postText.matchAll(googleFileLinkRegex);
                     // Note: We want to limit the detection for only the 1st link. The reason is to reduce noise, because one link would generate quite some messages already
@@ -150,10 +151,10 @@ const botHandler = async event => {
 
                     const checkAccountResult = await checkMembersGoogleAccountAuth(botForPost, postGroupId);
                     if (checkAccountResult.returnMessage) {
-                        await botForMessage.sendMessage(cmdGroup.id, { text: checkAccountResult.returnMessage });
+                        await botForPost.sendMessage(postGroupId, { text: checkAccountResult.returnMessage });
                     }
 
-                    const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+\\?usp=sharing');
+                    const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+');
                     const fileId = googleFileLinkInPost.match(fileIdRegex)[1];
 
                     let googleFile = await GoogleFile.findByPk(fileId);

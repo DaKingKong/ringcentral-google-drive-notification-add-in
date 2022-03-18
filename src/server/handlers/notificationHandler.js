@@ -107,7 +107,7 @@ async function onReceiveNotification(googleUser) {
                 const isNewComment = commentData.replies.length === 0;
                 console.log('drive.comments.get:', JSON.stringify(commentData, null, 2));
                 console.log('drive.comments.get:', subscription.lastPushedCommentId);
-                if (isEventNew(change.time, commentData.modifiedTime) && isNewComment && !commentData.author.me && subscription.lastPushedCommentId != commentData.id) {
+                if (isEventNew(change.time, commentData.modifiedTime) && isNewComment && subscription.lastPushedCommentId != commentData.id) {
                     console.log('===========NEW COMMENT============');
                     await subscription.update({
                         lastPushedCommentId: commentData.id

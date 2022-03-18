@@ -16,6 +16,12 @@
             "wrap": true
         },
         {
+            "type": "TextBlock",
+            "text": "Warning: This service is at alpha stage. Please click **advance** when seeing a Google hasn't verified this app page.",
+            "wrap": true,
+            "color": "Warning"
+        },
+        {
             "type": "ActionSet",
             "actions": [
                 {

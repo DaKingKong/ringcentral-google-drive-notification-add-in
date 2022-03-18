@@ -62,7 +62,7 @@ async function oauthCallback(req, res) {
         return;
     }
 
-    const { accessToken, refreshToken, expires } = await oauthApp.code.getToken(process.env.IS_PROD === 'true' ? `/prod${req.url}` : req.url);
+    const { accessToken, refreshToken, expires } = await oauthApp.code.getToken(req.url);
     if (!accessToken) {
         res.status(403);
         res.send('Params error');
