@@ -37,6 +37,14 @@ beforeAll(async () => {
     })
 });
 
+afterAll(async () => {
+    await Bot.destroy({
+        where: {
+            id: botId
+        }
+    });
+})
+
 describe('botHandler', () => {
     test.each(eventDataTable)('missing Google Account', async eventData => {
         // Arrange

@@ -73,7 +73,7 @@ describe('authorizationHandler - getInGroupRcUserGoogleAccountInfo', () => {
     });
 });
 
-describe('authorizationHandler - oauthCallback', async () => {
+describe('authorizationHandler - oauthCallback', () => {
     test('botId missing', async () => {
         // Arrange
         const unknownBotId = 'unknownBotId';
