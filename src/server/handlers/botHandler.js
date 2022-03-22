@@ -1,4 +1,3 @@
-
 const { default: Bot } = require('ringcentral-chatbot-core/dist/models/Bot');
 const authorizationHandler = require('./authorizationHandler');
 const { getOAuthApp } = require('../lib/oauth');

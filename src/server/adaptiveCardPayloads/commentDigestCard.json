@@ -110,7 +110,6 @@
                                     },
                                     {
                                         "type": "ColumnSet",
-                                        "separator": true,
                                         "columns": [
                                             {
                                                 "type": "Column",
@@ -175,7 +174,7 @@
                                                 "items": [
                                                     {
                                                         "type": "TextBlock",
-                                                        "text": "\"${commentContent}\"",
+                                                        "text": "\"**${commentContent}**\"",
                                                         "wrap": true
                                                     }
                                                 ],
