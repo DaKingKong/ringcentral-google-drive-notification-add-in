@@ -3,7 +3,7 @@ on:
   release:
     types: [published]
 jobs:
-  test-and-release-npm:
+  test-and-release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
