@@ -112,9 +112,9 @@ const botHandler = async event => {
                         }
                         break;
                     case 'help':
+                    case 'h':
                         await botForMessage.sendMessage(cmdGroup.id, { text: helperText });
                     default:
-                        await botForMessage.sendMessage(cmdGroup.id, { text: helperText });
                         break;
 
                 }

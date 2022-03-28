@@ -103,7 +103,7 @@ async function oauthCallback(req, res) {
             // create a global subscription for this google user
             await subscriptionHandler.createGlobalSubscription(user);
 
-            await bot.sendMessage(user.rcDMGroupId, { text: `Authorized Google Account ${googleUserInfoResponse.email} for ${rcUserInfo.firstName} ${rcUserInfo.lastName}.` });
+            await bot.sendMessage(user.rcDMGroupId, { text: `Authorized Google Account ${googleUserInfoResponse.email} for ${rcUserInfo.firstName} ${rcUserInfo.lastName}. Now that you've authorized the Google Drive Bot, you will start receiving notifications here when new files are shared with you.` });
         }
         else {
             await bot.sendMessage(user.rcDMGroupId, { text: `Google Account ${googleUserInfoResponse.email} already exists.` });
@@ -115,7 +115,7 @@ async function oauthCallback(req, res) {
         res.send('Internal error.');
     }
     res.status(200);
-    res.send('<!doctype><html><body><script>close()</script></body></html>')
+    res.send('<!doctype><html><body><script>window.close()</script></body></html>')
 };
 
 async function checkUserFileAccess(googleUser, fileId) {
