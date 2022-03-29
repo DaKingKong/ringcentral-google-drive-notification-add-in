@@ -59,21 +59,26 @@ async function addFileSubscription(googleUser, groupId, botId, fileId, state, ho
       fileName: duplicatedFile.name
     };
   }
-
-  const checkFileResponse = await drive.files.get({ fileId, fields: 'id, name, webViewLink, iconLink, owners' });
-  if (!checkFileResponse.data.id) {
-    return {
-      subscriptionFileState: 'NotFound'
-    };
+  let checkFileResponse;
+  try {
+    checkFileResponse = await drive.files.get({ fileId, fields: 'id, name, webViewLink, iconLink, owners', supportsAllDrives: true });
   }
-
+  catch (e) {
+    // google user cannot find the file => no access
+    if (e.response.status === 404) {
+      return {
+        subscriptionFileState: 'NotFound'
+      };
+    }
+  }
+  
   const existingFile = await GoogleFile.findByPk(checkFileResponse.data.id);
   if (!existingFile) {
     await GoogleFile.create({
       id: checkFileResponse.data.id,
       name: checkFileResponse.data.name,
       iconLink: checkFileResponse.data.iconLink,
-      ownerEmail: checkFileResponse.data.owners[0].emailAddress,
+      ownerEmail: checkFileResponse.data.owners ? checkFileResponse.data.owners[0].emailAddress : '',
       url: checkFileResponse.data.webViewLink
     });
     fileName = checkFileResponse.data.name;
@@ -116,6 +121,7 @@ async function setSubscriptionStateAndStartTime(botId, groupId, fileId, state, h
   })
   if (!subscription) {
     console.error('subscription not found.')
+    return;
   }
 
   const nowDate = new Date();
@@ -158,8 +164,9 @@ async function muteSubscription(botId, groupId, fileId) {
   })
   if (!subscription) {
     console.error('subscription not found.')
+    return;
   }
-  const state = subscription.state;
+  
   await subscription.update({
     state: 'muted'
   });

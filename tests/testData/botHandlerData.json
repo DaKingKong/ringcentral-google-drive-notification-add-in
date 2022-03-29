@@ -1,0 +1,118 @@
+{
+    "botJoinGroupCases": [
+        {
+            "input": {
+                "event": {
+                    "type": "BotJoinGroup",
+                    "userId": "unknownId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            }
+        }
+    ],
+    "missingGoogleAccountCases": [
+        {
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "logout",
+                    "userId": "unknownId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "Google Drive account not found. Please type `login` to authorize your account."
+        },
+        {
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "sub",
+                    "userId": "unknownId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "Google Drive account not found. Please type `login` to authorize your account."
+        },
+        {
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "subscribe",
+                    "userId": "unknownId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "Google Drive account not found. Please type `login` to authorize your account."
+        },
+        {
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "config",
+                    "userId": "unknownId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "Google Drive account not found. Please type `login` to authorize your account."
+        },
+        {
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "list",
+                    "userId": "unknownId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "Google Drive account not found. Please type `login` to authorize your account."
+        }
+    ],
+    "successfulCommandCases":[
+        {
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "hello",
+                    "userId": "unknownId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "hello"   
+        }
+    ]
+}

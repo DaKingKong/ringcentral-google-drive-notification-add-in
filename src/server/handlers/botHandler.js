@@ -54,7 +54,7 @@ const botHandler = async event => {
                             const oauthApp = getOAuthApp();
                             const authLink = `${oauthApp.code.getUri({
                                 state: `botId=${botForMessage.id}&rcUserId=${userId}`
-                            })}&access_type=offline`; 
+                            })}&access_type=offline`;
                             const authCard = cardBuilder.authCard(authLink);
                             await botForMessage.sendAdaptiveCard(createGroupResponse.id, authCard);
                         }
@@ -160,7 +160,7 @@ const botHandler = async event => {
                     if (!googleFile) {
                         const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUserForPost.accessToken}` } });
                         try {
-                            const googleFileResponse = await drive.files.get({ fileId, fields: 'id, name, webViewLink, iconLink, owners' });
+                            const googleFileResponse = await drive.files.get({ fileId, fields: 'id, name, webViewLink, iconLink, owners', supportsAllDrives: true });
                             googleFile = await GoogleFile.create({
                                 id: googleFileResponse.data.id,
                                 name: googleFileResponse.data.name,
@@ -233,7 +233,6 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
             noAccountMessage += `![:Person](${userId}) `;
         }
         noAccountMessage += '\n\nPlease @me with `login` command to authorize.';
-        await bot.sendMessage(groupId, { text: noAccountMessage });
     }
 
     return {

@@ -122,7 +122,7 @@ async function checkUserFileAccess(googleUser, fileId) {
     try {
         await checkAndRefreshAccessToken(googleUser);
         const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
-        await drive.files.get({ fileId, fields: 'id' });
+        await drive.files.get({ fileId, fields: 'id', supportsAllDrives: true });
         return true;
     }
     catch (e) {

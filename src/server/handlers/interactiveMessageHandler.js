@@ -98,7 +98,7 @@ async function interactiveMessages(req, res) {
                                 await bot.sendMessage(groupId, { text: `**Failed to create**. Subscription for file: **${fileName}** already exists.` });
                                 break;
                             case 'NotFound':
-                                await bot.sendMessage(groupId, { text: `**Failed to create**. Unable to find file with id: ${fileId}` });
+                                await bot.sendMessage(groupId, { text: `**Failed to create**. Unable to find file with id: ${fileId} with Google Account: ${googleUser.email}` });
                                 break;
                         }
                     }

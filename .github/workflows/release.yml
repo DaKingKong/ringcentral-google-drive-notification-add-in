@@ -1,9 +1,8 @@
-name: release
-on:
-  release:
-    types: [published]
+name: CI pipeline
+on: [push, pull_request]
+
 jobs:
-  test-and-release:
+  test:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -14,4 +13,8 @@ jobs:
           node-version: '14'
           registry-url: https://registry.npmjs.org/
       - run: npm i
-      - run: npm run test
+      - run: npm run test-coverage
+      - name: Coveralls
+        uses: coverallsapp/github-action@master
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}

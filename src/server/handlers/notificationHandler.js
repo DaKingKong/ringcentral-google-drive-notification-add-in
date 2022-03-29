@@ -58,7 +58,7 @@ async function onReceiveNotification(googleUser) {
     console.log(`Latest changes: ${JSON.stringify(latestChanges, null, 2)}`)
     for (const change of latestChanges) {
         const fileId = change.fileId;
-        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,ownedByMe' })
+        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,ownedByMe', supportsAllDrives: true })
         const fileData = fileResponse.data;
         const googleFile = await GoogleFile.findByPk(fileId);
 
@@ -103,8 +103,11 @@ async function onReceiveNotification(googleUser) {
             for (const subscription of subscriptions) {
                 const commentResponse = await drive.comments.list({ fileId, pageSize: 1, fields: '*' });
                 const commentData = commentResponse.data.comments[0];
+                if (!commentData) {
+                    continue;
+                }
                 // NewComment = Comment with no Reply
-                const isNewComment = commentData.replies.length === 0;
+                const isNewComment = commentData.replies == null || commentData.replies.length === 0;
                 console.log('drive.comments.get:', JSON.stringify(commentData, null, 2));
                 console.log('drive.comments.get:', subscription.lastPushedCommentId);
                 if (isEventNew(change.time, commentData.modifiedTime) && isNewComment && subscription.lastPushedCommentId != commentData.id) {
@@ -120,7 +123,7 @@ async function onReceiveNotification(googleUser) {
                         fileIconUrl: fileData.iconLink,
                         fileName: fileData.name,
                         commentContent: commentData.content,
-                        quotedContent: commentData.quotedFileContent.value,
+                        quotedContent: commentData.quotedFileContent?.value ?? "",
                         fileUrl: fileData.webViewLink,
                         commentIconUrl: "https://lh3.googleusercontent.com/UeyfqNkFySLGNweD_KkSUPrMoUekF17KLqeWi18L2UwZZZrEbVl8vNledRTp2iRqJUE=w36",
                         userId: googleUser.id,
