@@ -5,13 +5,14 @@ const sequelize = new Sequelize(process.env.RINGCENTRAL_CHATBOT_DATABASE_CONNECT
   {
     dialect: 'postgres',
     protocol: 'postgres',
-    dialectOptions:{
+    dialectOptions: {
       ssl: {
         rejectUnauthorized: false
       }
-    }
+    },
+    logging: false
   }
 );
- 
+
 
 exports.sequelize = sequelize;

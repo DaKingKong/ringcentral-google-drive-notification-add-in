@@ -8,6 +8,7 @@ const { default: Bot } = require('ringcentral-chatbot-core/dist/models/Bot');
 const groupId = 'groupId';
 const accessToken = 'accessToken';
 const botId = 'botId';
+const googleUserId = 'googleUserId';
 
 const botUserInfo = {
     id: 'botUserId',
@@ -25,7 +26,7 @@ const userInfo2 = {
 
 beforeAll(async () => {
     await GoogleUser.create({
-        id: 'googleUserId',
+        id: googleUserId,
         rcUserId: 'rcUserId1'
     });
     await Bot.create({
@@ -36,7 +37,12 @@ beforeAll(async () => {
 afterAll(async () => {
     await GoogleUser.destroy({
         where: {
-            id: 'googleUserId'
+            id: googleUserId
+        }
+    });
+    await Bot.destroy({
+        where: {
+            id: botId
         }
     });
 })

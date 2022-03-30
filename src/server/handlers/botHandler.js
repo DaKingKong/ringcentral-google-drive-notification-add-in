@@ -39,6 +39,7 @@ const botHandler = async event => {
                         rcUserId: userId
                     }
                 })
+                
                 // Create/Find DM conversation to the RC user
                 const createGroupResponse = await rcAPI.createConversation([userId], botForMessage.token.access_token);
 
@@ -112,11 +113,9 @@ const botHandler = async event => {
                         }
                         break;
                     case 'help':
-                    case 'h':
                         await botForMessage.sendMessage(cmdGroup.id, { text: helperText });
                     default:
                         break;
-
                 }
                 break;
             case 'PostAdded':

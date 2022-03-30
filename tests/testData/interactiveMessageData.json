@@ -1,0 +1,63 @@
+{
+    "serverValidations": [
+        {
+            "body": {
+                "data": null
+            }
+        },
+        {
+            "body": {
+                "data": {},
+                "user": null
+            }
+        },
+        {
+            "body": {
+                "data": {
+                    "botId": null
+                },
+                "user": {}
+            }
+        },
+        {
+            "body": {
+                "data": {
+                    "botId": "unknownBotId"
+                },
+                "user": {}
+            }
+        }
+    ],
+    "botMessageValidations": [
+        {
+            "body": {
+                "data": {
+                    "botId": "botId"
+                },
+                "user": {
+                    "extId": "unknownRcUserId"
+                },
+                "conversation": {
+                    "id": "groupId"
+                }
+            },
+            "result": "![:Person](unknownRcUserId) Google Drive account not found. Please message me with `login` to login."
+        }
+    ],
+    "simpleCardGeneration": [
+        {
+            "body": {
+                "data": {
+                    "botId": "botId",
+                    "actionType": "unAuthCard"
+                },
+                "user": {
+                    "extId": "rcUserId"
+                },
+                "conversation": {
+                    "id": "groupId"
+                }
+            }
+        }
+    ]
+}

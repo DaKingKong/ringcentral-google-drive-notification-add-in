@@ -12,7 +12,7 @@ const authorizationHandler = require('./authorizationHandler');
 async function interactiveMessages(req, res) {
     try {
         // Shared secret can be found on RingCentral developer portal, under your app Settings
-        const SHARED_SECRET = process.env.IM_SHARED_SECRET;
+        const SHARED_SECRET = process.env.RINGCENTRAL_SHARED_SECRET;
         if (SHARED_SECRET) {
             const signature = req.get('X-Glip-Signature', 'sha1=');
             const encryptedBody =

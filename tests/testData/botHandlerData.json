@@ -1,10 +1,11 @@
 {
     "botJoinGroupCases": [
         {
+            "description":"bot join group - show welcome message",
             "input": {
                 "event": {
                     "type": "BotJoinGroup",
-                    "userId": "unknownId",
+                    "userId": "unknownRcUserId",
                     "bot": {
                         "id": "botId"
                     },
@@ -17,11 +18,12 @@
     ],
     "missingGoogleAccountCases": [
         {
+            "description":"@bot logout - no Google Account",
             "input": {
                 "event": {
                     "type": "Message4Bot",
                     "text": "logout",
-                    "userId": "unknownId",
+                    "userId": "unknownRcUserId",
                     "bot": {
                         "id": "botId"
                     },
@@ -33,11 +35,12 @@
             "result": "Google Drive account not found. Please type `login` to authorize your account."
         },
         {
+            "description":"@bot sub - no Google Account",
             "input": {
                 "event": {
                     "type": "Message4Bot",
                     "text": "sub",
-                    "userId": "unknownId",
+                    "userId": "unknownRcUserId",
                     "bot": {
                         "id": "botId"
                     },
@@ -49,11 +52,12 @@
             "result": "Google Drive account not found. Please type `login` to authorize your account."
         },
         {
+            "description":"@bot subscribe - no Google Account",
             "input": {
                 "event": {
                     "type": "Message4Bot",
                     "text": "subscribe",
-                    "userId": "unknownId",
+                    "userId": "unknownRcUserId",
                     "bot": {
                         "id": "botId"
                     },
@@ -65,11 +69,12 @@
             "result": "Google Drive account not found. Please type `login` to authorize your account."
         },
         {
+            "description":"@bot config - no Google Account",
             "input": {
                 "event": {
                     "type": "Message4Bot",
                     "text": "config",
-                    "userId": "unknownId",
+                    "userId": "unknownRcUserId",
                     "bot": {
                         "id": "botId"
                     },
@@ -81,11 +86,12 @@
             "result": "Google Drive account not found. Please type `login` to authorize your account."
         },
         {
+            "description":"@bot list - no Google Account",
             "input": {
                 "event": {
                     "type": "Message4Bot",
                     "text": "list",
-                    "userId": "unknownId",
+                    "userId": "unknownRcUserId",
                     "bot": {
                         "id": "botId"
                     },
@@ -95,15 +101,20 @@
                 }
             },
             "result": "Google Drive account not found. Please type `login` to authorize your account."
-        }
-    ],
-    "successfulCommandCases":[
+        },
         {
+            "description":"file link posted - team member no Google Account",
             "input": {
                 "event": {
-                    "type": "Message4Bot",
-                    "text": "hello",
-                    "userId": "unknownId",
+                    "type": "PostAdded",
+                    "message": {
+                        "body": {
+                            "text": "https://docs.google.com/document/d/fileId/edit",
+                            "creatorId": "unknownRcUserId",
+                            "groupId": "groupId"
+                        },
+                        "ownerId": "botId"
+                    },
                     "bot": {
                         "id": "botId"
                     },
@@ -112,7 +123,200 @@
                     }
                 }
             },
-            "result": "hello"   
+            "result": "Google Drive file link detected. But ![:Person](unknownRcUserId) doesn't have an authorized Google Account. Please @me with `login` command to authorize."
+        }
+    ],
+    "successfulCommandReturnMessage": [
+        {
+            "description":"@bot hello - return hello",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "hello",
+                    "userId": "unknownRcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "hello"
+        },
+        {
+            "description":"@bot login but already logged in - return message",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "login",
+                    "userId": "rcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "You have already logged in."
+        },
+        {
+            "description":"@bot logout but yet log in - return message",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "logout",
+                    "userId": "unknownRcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "Google Drive account not found. Please type `login` to authorize your account."
+        },
+        {
+            "description":"@bot checkauth - all authorized",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "checkauth",
+                    "userId": "rcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result": "All members authorized."
+        }
+    ],
+    "successfulCommandReturnCard": [
+        {
+            "description":"@bot login - return card",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "login",
+                    "userId": "unknownRcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            }
+        },
+        {
+            "description":"@bot logout - return card",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "logout",
+                    "userId": "rcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            }
+        },
+        {
+            "description":"@bot sub - return card",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "sub",
+                    "userId": "rcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            }
+        },
+        {
+            "description":"@bot subscribe - return card",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "subscribe",
+                    "userId": "rcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            }
+        },
+        {
+            "description":"@bot config - return card",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "config",
+                    "userId": "rcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            }
+        },
+        {
+            "description":"@bot list - return card",
+            "input": {
+                "event": {
+                    "type": "Message4Bot",
+                    "text": "list",
+                    "userId": "rcUserId",
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            }
+        }
+    ],
+    "fileLinkPost": [
+        {
+            "description":"file link posted - return message of members don't have Google Account",
+            "input": {
+                "event": {
+                    "type": "PostAdded",
+                    "message": {
+                        "body": {
+                            "text": "https://docs.google.com/document/d/fileId/edit",
+                            "creatorId": "rcUserId",
+                            "groupId": "groupId"
+                        },
+                        "ownerId": "botId"
+                    },
+                    "bot": {
+                        "id": "botId"
+                    },
+                    "group": {
+                        "id": "groupId"
+                    }
+                }
+            },
+            "result":"Google Drive file link detected. Following users don't have access to above file\n ![:Person](unknownRcUserId)"
         }
     ]
 }
