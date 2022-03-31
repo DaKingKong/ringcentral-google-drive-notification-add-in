@@ -21,6 +21,7 @@ async function subscriptionListCard(botId, groupId) {
             groupId
         }
     });
+    
     const activeSubscriptionList = [];;
     const mutedSubscriptionList = [];;
     for (const subscription of subscriptions) {

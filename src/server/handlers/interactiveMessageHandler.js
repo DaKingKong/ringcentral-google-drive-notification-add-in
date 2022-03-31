@@ -143,6 +143,7 @@ async function interactiveMessages(req, res) {
                     await bot.sendMessage(groupId, { text: 'Comment replied.' });
                 }
                 catch (e) {
+                    console.log(e)
                     if (e.response.status === 403) {
                         await bot.sendMessage(groupId, { text: `![:Person](${rcUserId}) Your Google Account (${googleUser.email}) does not have access to reply comment under this file.` });
                         res.status(200);

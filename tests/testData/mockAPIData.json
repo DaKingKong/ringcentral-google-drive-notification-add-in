@@ -1,0 +1,69 @@
+{
+    "rcAPI": {
+        "getUserInfo": {
+            "userWithName": {
+                "firstName": "firstName",
+                "lastName": "lastName"
+            }
+        },
+        "getBulkUserInfo": {
+            "emptyMember": [],
+            "unauthorizedUser": [
+                {
+                    "id": "unknownRcUserId",
+                    "email": "rcUserEmail"
+                }
+            ],
+            "user": [
+                {
+                    "id": "rcUserId",
+                    "email": "rcUserEmail"
+                }
+            ],
+            "bot": [
+                {
+                    "id": "botRcUserId",
+                    "email": "test@email.bot.glip.net"
+                }
+            ],
+            "userAndBot": [
+                {
+                    "id": "rcUserId",
+                    "email": "rcUserEmail"
+                },
+                {
+                    "id": "botRcUserId",
+                    "email": "test@email.bot.glip.net"
+                }
+            ],
+            "userAndUnauthorizedUser": [
+                {
+                    "id": "rcUserId",
+                    "email": "rcUserEmail"
+                },
+                {
+                    "id": "unknownRcUserId",
+                    "email": "rcUserEmail"
+                }
+            ],
+            "userAndUserWithoutFileAccess": [
+                {
+                    "id": "rcUserId",
+                    "email": "rcUserEmail"
+                },
+                {
+                    "id": "noFileRcUserId",
+                    "email": "rcUserEmail"
+                }
+            ]
+        },
+        "getGroupInfo": {
+            "none": []
+        },
+        "createConversation": {
+            "successfulCreation": {
+                "id": "groupId"
+            }
+        }
+    }
+}
