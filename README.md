@@ -1,7 +1,7 @@
 # RingCentral-Google-Drive-Notification-Add-In
 
-[![Build Status](https://github.com/ringcentral/ringcentral-google-drive-notification-add-in/workflows/CI%20Pipeline/badge.svg?branch=main)](https://github.com/ringcentral/ringcentral-google-drive-notification-add-in/actions)
-[![Coverage Status](https://coveralls.io/repos/github/ringcentral/ringcentral-google-drive-notification-add-in/badge.svg?branch=main)](https://coveralls.io/github/ringcentral/ringcentral-google-drive-notification-add-in?branch=main)
+[![Build Status](https://github.com/ringcentral/ringcentral-google-drive-notification-add-in/workflows/CI%20Pipeline/badge.svg?branch=master)](https://github.com/ringcentral/ringcentral-google-drive-notification-add-in/actions)
+[![Coverage Status](https://coveralls.io/repos/github/ringcentral/ringcentral-google-drive-notification-add-in/badge.svg?branch=master)](https://coveralls.io/github/ringcentral/ringcentral-google-drive-notification-add-in?branch=master)
 
 Hello human, I'm a bot that lives in RingCentral App environment and can help you with following use cases:
 
