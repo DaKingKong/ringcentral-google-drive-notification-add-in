@@ -54,7 +54,7 @@ async function onReceiveNotification(googleUser) {
     }
 
     const bot = await Bot.findByPk(googleUser.botId);
-    const latestChanges = await listResponse.data.changes.filter(change => change.type === 'file');
+    const latestChanges = listResponse.data.changes.filter(change => change.type === 'file');
     console.log(`Latest changes: ${JSON.stringify(latestChanges, null, 2)}`)
     for (const change of latestChanges) {
         const fileId = change.fileId;
@@ -68,7 +68,7 @@ async function onReceiveNotification(googleUser) {
                 name: fileData.name
             });
         }
-
+        
         // Case: New File Share With Me
         if (!fileData.ownedByMe && googleUser.isReceiveNewFile && fileData.sharedWithMeTime && isEventNew(change.time, fileData.sharedWithMeTime)) {
             console.log('===========NEW FILE============');
@@ -119,7 +119,7 @@ async function onReceiveNotification(googleUser) {
                     {
                         userAvatar: commentData.author.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
                         username: commentData.author.displayName,
-                        userEmail: commentData.anchor.emailAddress ?? "",
+                        userEmail: commentData.author.emailAddress ?? "",
                         fileIconUrl: fileData.iconLink,
                         fileName: fileData.name,
                         commentContent: commentData.content,
@@ -141,7 +141,7 @@ async function onReceiveNotification(googleUser) {
                         await bot.sendAdaptiveCard(subscription.groupId, card);
                     }
                     // daily, weekly -> cache
-                    else {
+                    else if (subscription.state === 'daily' || subscription.state === 'weekly'){
                         const cachedInfo = subscription.cachedInfo;
                         cachedInfo.commentNotifications.push(cardData);
                         await subscription.update({
@@ -166,6 +166,7 @@ async function SendDigestNotification(subscriptions) {
             groupIds.push(sub.groupId);
         }
     }
+    
     for (const groupId of groupIds) {
         const subscriptionsInGroup = subscriptions.filter(s => s.groupId == groupId);
         let cardData =

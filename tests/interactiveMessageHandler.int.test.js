@@ -17,6 +17,7 @@ const fileName = 'fileName';
 const unknownRcUserId = 'unknownRcUserId';
 const googleUserId = 'googleUserId';
 const googleUserEmail = 'googleUserEmail';
+const subId = 'subId';
 
 const postScope = nock(process.env.RINGCENTRAL_SERVER)
     .persist()
@@ -271,7 +272,7 @@ describe('interactiveMessageHandler', () => {
                     requestBody = JSON.parse(reqBody);
                 });
                 const sub = await Subscription.create({
-                    id: 'subId',
+                    id: subId,
                     botId,
                     groupId,
                     fileId,
@@ -292,9 +293,72 @@ describe('interactiveMessageHandler', () => {
             });
         });
 
+        describe('unAuth', () => {
+            test('successful unauthorization - return successful message', async () => {
+                // Arrange
+                let requestBody = null;
+                await GoogleUser.create({
+                    id: 'googleUserId2',
+                    rcUserId: 'rcUserId2',
+                    email: googleUserEmail
+                })
+                await Subscription.create({
+                    id: subId,
+                    rcUserId: 'rcUserId2',
+                    botId,
+                    groupId,
+                    fileId,
+                    state: 'realtime',
+                    googleUserId: 'googleUserId2'
+                });
+
+                const postData = {
+                    data: {
+                        botId,
+                        actionType: 'unAuth'
+                    },
+                    user: {
+                        extId: 'rcUserId2'
+                    },
+                    conversation: {
+                        id: groupId
+                    }
+                }
+                postScope.once('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
+                    requestBody = JSON.parse(reqBody);
+                });
+                const googleChannelScope = nock('https://www.googleapis.com')
+                    .post(`/drive/v3/channels/stop`)
+                    .once()
+                    .reply(200);
+                const googleOAuthScope = nock('https://oauth2.googleapis.com')
+                    .post(`/revoke?token=null`)
+                    .once()
+                    .reply(200);
+
+                // Act
+                const res = await request(server).post('/interactive-messages').send(postData)
+
+                // Assert
+                expect(res.status).toEqual(200);
+                expect(requestBody.text).toBe('Successfully logged out.');
+
+                const updatedSub = await Subscription.findByPk(subId);
+                expect(updatedSub).toBeNull();
+
+                const updatedGoogleUser = await GoogleUser.findByPk('googleUserId2');
+                expect(updatedGoogleUser).toBeNull();
+
+                // Clean up
+                googleChannelScope.done();
+                googleOAuthScope.done();
+            })
+        });
+
         describe('subscribe', () => {
             const googleFileLink = 'https://docs.google.com/document/d/fileId/edit';
             const unknownGoogleFileLink = 'https://docs.google.com/document/d/unknownFileId/edit';
+            const newGoogleFileLink = 'https://docs.google.com/document/d/newFileId/edit';
 
             test('duplicated fileId - return error message', async () => {
                 // Arrange
@@ -318,7 +382,7 @@ describe('interactiveMessageHandler', () => {
                 });
 
                 const sub = await Subscription.create({
-                    id: 'subId',
+                    id: subId,
                     botId,
                     groupId,
                     fileId,
@@ -359,7 +423,7 @@ describe('interactiveMessageHandler', () => {
                 });
 
                 const sub = await Subscription.create({
-                    id: 'subId',
+                    id: subId,
                     botId,
                     groupId,
                     fileId,
@@ -382,6 +446,57 @@ describe('interactiveMessageHandler', () => {
                 await sub.destroy();
                 googleFileScope.done();
             });
+
+            test('new fileId realtime, no db record for file - return successful message', async () => {
+                // Arrange
+                let requestBody = null;
+                const postData = {
+                    data: {
+                        botId,
+                        actionType: 'subscribe',
+                        inputLinks: newGoogleFileLink,
+                        state: 'realtime'
+                    },
+                    user: {
+                        extId: rcUserId
+                    },
+                    conversation: {
+                        id: groupId
+                    }
+                }
+                postScope.once('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
+                    requestBody = JSON.parse(reqBody);
+                });
+
+                const googleFileScope = nock('https://www.googleapis.com')
+                    .get(`/drive/v3/files/newFileId?fields=id%2C%20name%2C%20webViewLink%2C%20iconLink%2C%20owners&supportsAllDrives=true`)
+                    .once()
+                    .reply(200, {
+                        id: 'newFileId',
+                        name: fileName,
+                        iconLink: '',
+                        owners: null,
+                        webViewLink: ''
+                    });
+
+                // Act
+                const res = await request(server).post('/interactive-messages').send(postData)
+
+                // Assert
+                expect(res.status).toEqual(200);
+                expect(requestBody.text).toBe("**Subscription created**. Now watching new comment events for file: **fileName**.");
+
+                // Clean up
+                await Subscription.destroy({
+                    where: {
+                        groupId,
+                        botId,
+                        fileId: 'newFileId'
+                    }
+                })
+                googleFileScope.done();
+            });
+
 
             test('new fileId realtime - return successful message', async () => {
                 // Arrange
@@ -541,7 +656,7 @@ describe('interactiveMessageHandler', () => {
                     requestBody = JSON.parse(reqBody);
                 });
                 await Subscription.create({
-                    id: 'subId',
+                    id: subId,
                     botId,
                     groupId,
                     fileId,
@@ -550,7 +665,7 @@ describe('interactiveMessageHandler', () => {
 
                 // Act
                 const res = await request(server).post('/interactive-messages').send(postData)
-                const updatedSub = await Subscription.findByPk('subId');
+                const updatedSub = await Subscription.findByPk(subId);
 
                 // Assert
                 expect(res.status).toEqual(200);
@@ -589,7 +704,7 @@ describe('interactiveMessageHandler', () => {
                     requestBody = JSON.parse(reqBody);
                 });
                 await Subscription.create({
-                    id: 'subId',
+                    id: subId,
                     botId,
                     groupId,
                     fileId,
@@ -598,7 +713,7 @@ describe('interactiveMessageHandler', () => {
 
                 // Act
                 const res = await request(server).post('/interactive-messages').send(postData)
-                const updatedSub = await Subscription.findByPk('subId');
+                const updatedSub = await Subscription.findByPk(subId);
 
                 // Assert
                 expect(res.status).toEqual(200);
@@ -633,7 +748,7 @@ describe('interactiveMessageHandler', () => {
                     requestBody = JSON.parse(reqBody);
                 });
                 await Subscription.create({
-                    id: 'subId',
+                    id: subId,
                     botId,
                     groupId,
                     fileId,
@@ -642,7 +757,7 @@ describe('interactiveMessageHandler', () => {
 
                 // Act
                 const res = await request(server).post('/interactive-messages').send(postData)
-                const updatedSub = await Subscription.findByPk('subId');
+                const updatedSub = await Subscription.findByPk(subId);
 
                 // Assert
                 expect(res.status).toEqual(200);
@@ -847,7 +962,7 @@ describe('interactiveMessageHandler', () => {
                 // Assert
                 expect(res.status).toEqual(200);
                 expect(requestBody.text).toBe('New File Share notifications turned ON. You will START receiving notifications when there is a new file shared with you.');
-            
+
                 expect(updatedGoogleUser.isReceiveNewFile).toBe(true);
             });
 
@@ -877,7 +992,7 @@ describe('interactiveMessageHandler', () => {
                 // Assert
                 expect(res.status).toEqual(200);
                 expect(requestBody.text).toBe('New File Share notifications turned OFF. You will STOP receiving notifications when there is a new file shared with you.');
-            
+
                 expect(updatedGoogleUser.isReceiveNewFile).toBe(false);
             });
         });

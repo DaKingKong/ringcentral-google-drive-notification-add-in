@@ -85,7 +85,7 @@
             "actions": [
                 {
                     "type": "Action.OpenUrl",
-                    "title": "Web View",
+                    "title": "Open",
                     "url": "${fileUrl}",
                     "style": "positive"
                 }
