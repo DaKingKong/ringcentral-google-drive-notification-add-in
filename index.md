@@ -1,15 +1,12 @@
 ## RingCentral Google Drive Add-In
 
-RingCentral Google Drive Add-In is a bot for [RingCentral App](https://www.ringcentral.com/apps/rc-app) that provides features from within RingCentral App.
-
-
-### Features
-
-- Subscribe to `New Comment` and `New File Share` notifications so that you can immediately receive them from within RingCentral App
-- Manage subscriptions by setting up the push mode to `Realtime`, `Daily` or `Weekly` so that you can control notification traffic
+RingCentral’s Google Drive Add-in is a bot within [RingCentral App](https://www.ringcentral.com/apps/rc-app) that alerts users to `new file shares` and `new comments`.  In addition to these key features, the following additional features are available with this integration:
+- Be notified of new file shares and comments without leaving the RingCentral App and checking your email. 
+- Interact with comments by submitting your own comments to a Google doc without ever leaving RingCentral.
+- Received notifications the way you want to in Realtime, Daily or Weekly to control your interaction with Google Drive
 - Automatically detect Google file links in RingCentral App conversations and make sure all team members have file access
 
-### Commands
+### How To Use
 
 - `@bot login`: **Login** with your Google Account
 - `@bot logout`: **Logout** your Google Account and clear all subscriptions created by it
@@ -18,18 +15,20 @@ RingCentral Google Drive Add-In is a bot for [RingCentral App](https://www.ringc
 - `@bot list`: **List** all subscriptions for New Comment under this channel
 - `@bot config`: (**Only works in Direct Message**)**Config** user settings
 
+[![RingCentral Google Drive Bot](https://res.cloudinary.com/marcomontalbano/image/upload/v1648875992/video_to_markdown/images/youtube--_Xa2__K3Jaw-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://youtu.be/_Xa2__K3Jaw "RingCentral Google Drive Bot")
+
 ### Data Usage Justification
 
-The following content shows our service components and relevant data usage purpose:
+The following content shows what we do with your Google Drive data:
 
-- Get user data -> To fetch user info so to build up an user profile in our database for our features
+- Get user data                             -> To fetch user info so to build up an user profile in our database for our features
 - Subscribe to changes on your Google Drive -> To mointor new changes on your Google Drive and setup our server to receive corresponding info from Google services
-- Get file changes data -> To fetch latest changes info so to identify the types of changes
-- Get file data -> To fetch file info so to show users a clear and comprehensive message on both `New Comment` and `New File Share` notifications
-- Get comment data -> To fetch comment info so to show users a clear and comprehensive message on `New Comment` notifications
-- Create reply -> To create replies under comments so to let user be able to reply comments directly as from within [RingCentral App](https://www.ringcentral.com/apps/rc-app)
-- Create file access permissions -> To create permissions so to grant user access to files
-- Stop subscription channel -> To let user completely unsubscribe from new change notifications 
+- Get file changes data                     -> To fetch latest changes info so to identify the types of changes
+- Get file data                             -> To fetch file info so to show users a clear and comprehensive message on both `New Comment` and `New File Share` notifications
+- Get comment data                          -> To fetch comment info so to show users a clear and comprehensive message on `New Comment` notifications
+- Create reply                              -> To create replies under comments so to let user be able to reply comments directly as from within [RingCentral App](https://www.ringcentral.com/apps/rc-app)
+- Create file access permissions            -> To create permissions so to grant user access to files
+- Stop subscription channel                 -> To let user completely unsubscribe from new change notifications 
 
 ### Additional Info
 - [Privacy Policy](https://www.ringcentral.com/legal/privacy-notice.html)
