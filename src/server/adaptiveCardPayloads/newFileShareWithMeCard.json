@@ -7,7 +7,7 @@
             "type": "TextBlock",
             "size": "Large",
             "weight": "Bolder",
-            "text": "New File Share"
+            "text": "**${username}** shared a ${fileType}"
         },
         {
             "type": "ColumnSet",
@@ -30,7 +30,6 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "weight": "Bolder",
                             "text": "${username}",
                             "wrap": true
                         },
@@ -45,11 +44,6 @@
                     "width": "stretch"
                 }
             ]
-        },
-        {
-            "type": "TextBlock",
-            "text": "**${username}** shared document:",
-            "wrap": true
         },
         {
             "type": "ColumnSet",
@@ -81,6 +75,41 @@
             ]
         },
         {
+            "separator": true,
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Owner: ${ownerDisplayName}${ownerEmail}",
+                            "wrap": true
+                        }
+                    ],
+                    "width": "stretch"
+                }
+            ]
+        },
+        {
+            "separator": true,
+            "type": "ColumnSet",
+            "columns": [
+                {
+                    "type": "Column",
+                    "items": [
+                        {
+                            "type": "TextBlock",
+                            "text": "Last edit: ${modifiedTime}",
+                            "wrap": true
+                        }
+                    ],
+                    "width": "stretch"
+                }
+            ]
+        },
+        {
+            "separator": true,
             "type": "ActionSet",
             "actions": [
                 {

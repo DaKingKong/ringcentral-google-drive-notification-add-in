@@ -58,7 +58,7 @@ async function onReceiveNotification(googleUser) {
     console.log(`Latest changes: ${JSON.stringify(latestChanges, null, 2)}`)
     for (const change of latestChanges) {
         const fileId = change.fileId;
-        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,ownedByMe', supportsAllDrives: true })
+        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,modifiedTime,ownedByMe,mimeType', supportsAllDrives: true })
         const fileData = fileResponse.data;
         const googleFile = await GoogleFile.findByPk(fileId);
 
@@ -68,7 +68,7 @@ async function onReceiveNotification(googleUser) {
                 name: fileData.name
             });
         }
-        
+
         // Case: New File Share With Me
         if (!fileData.ownedByMe && googleUser.isReceiveNewFile && fileData.sharedWithMeTime && isEventNew(change.time, fileData.sharedWithMeTime)) {
             console.log('===========NEW FILE============');
@@ -80,7 +80,11 @@ async function onReceiveNotification(googleUser) {
                 userEmail: owner.emailAddress ?? "",
                 fileIconUrl: fileData.iconLink,
                 fileName: fileData.name,
-                fileUrl: fileData.webViewLink
+                fileUrl: fileData.webViewLink,
+                fileType: getFileTypeFromMimeType(fileData.mimeType),
+                ownerEmail: fileData.owners[0].emailAddress,
+                ownerDisplayName: fileData.owners[0].displayName,
+                modifiedTime: fileData.modifiedTime
             };
             const card = cardBuilder.newFileShareCard(cardData);
             // Send adaptive card to your channel in RingCentral App
@@ -141,7 +145,7 @@ async function onReceiveNotification(googleUser) {
                         await bot.sendAdaptiveCard(subscription.groupId, card);
                     }
                     // daily, weekly -> cache
-                    else if (subscription.state === 'daily' || subscription.state === 'weekly'){
+                    else if (subscription.state === 'daily' || subscription.state === 'weekly') {
                         const cachedInfo = subscription.cachedInfo;
                         cachedInfo.commentNotifications.push(cardData);
                         await subscription.update({
@@ -166,7 +170,7 @@ async function SendDigestNotification(subscriptions) {
             groupIds.push(sub.groupId);
         }
     }
-    
+
     for (const groupId of groupIds) {
         const subscriptionsInGroup = subscriptions.filter(s => s.groupId == groupId);
         let cardData =
@@ -194,6 +198,23 @@ async function SendDigestNotification(subscriptions) {
                 }
             });
         }
+    }
+}
+
+function getFileTypeFromMimeType(mimeType) {
+    switch (mimeType) {
+        case 'application/vnd.google-apps.document':
+            return 'document';
+        case 'application/vnd.google-apps.folder':
+            return 'folder';
+        case 'application/vnd.google-apps.form':
+            return 'form';
+        case 'application/vnd.google-apps.presentation':
+            return 'slide';
+        case 'application/vnd.google-apps.spreadsheet':
+            return 'spreadsheet';
+        default:
+            return 'file';
     }
 }
 

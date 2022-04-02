@@ -98,7 +98,7 @@ describe('notificationHandler', () => {
             // Arrange
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     newStartPageToken
@@ -127,7 +127,7 @@ describe('notificationHandler', () => {
             // Arrange
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -138,7 +138,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: newFileName
@@ -173,7 +173,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -185,7 +185,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -226,7 +226,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -238,7 +238,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -280,7 +280,7 @@ describe('notificationHandler', () => {
             let requestBody = null;
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -292,7 +292,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -326,7 +326,7 @@ describe('notificationHandler', () => {
             expect(res.status).toEqual(200);
 
             expect(requestBody.type).toBe('AdaptiveCard');
-            expect(requestBody.body[0].text).toBe('New File Share');
+            expect(requestBody.body[0].text).toBe('**Owner Name** shared a file');
 
             // Clean up
             googleChangeListScope.done();
@@ -343,7 +343,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -355,7 +355,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -396,7 +396,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -408,7 +408,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -424,7 +424,7 @@ describe('notificationHandler', () => {
                     webViewLink: ''
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId/comments?pageSize=1&fields=%2A`)
+                .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
                 .once()
                 .reply(200, {
                     comments: []
@@ -458,7 +458,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -470,7 +470,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -486,7 +486,7 @@ describe('notificationHandler', () => {
                     webViewLink: ''
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId/comments?pageSize=1&fields=%2A`)
+                .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
                 .once()
                 .reply(200, {
                     comments: [{
@@ -528,7 +528,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -540,7 +540,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -556,7 +556,7 @@ describe('notificationHandler', () => {
                     webViewLink: ''
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId/comments?pageSize=1&fields=%2A`)
+                .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
                 .once()
                 .reply(200, {
                     comments: [{
@@ -593,7 +593,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -605,7 +605,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -621,7 +621,7 @@ describe('notificationHandler', () => {
                     webViewLink: ''
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId/comments?pageSize=1&fields=%2A`)
+                .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
                 .once()
                 .reply(200, {
                     comments: [{
@@ -658,7 +658,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -670,7 +670,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -686,7 +686,7 @@ describe('notificationHandler', () => {
                     webViewLink: ''
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId/comments?pageSize=1&fields=%2A`)
+                .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
                 .once()
                 .reply(200, {
                     comments: [{
@@ -729,7 +729,7 @@ describe('notificationHandler', () => {
             let requestBody = null;
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -741,7 +741,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -757,7 +757,7 @@ describe('notificationHandler', () => {
                     webViewLink: ''
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId/comments?pageSize=1&fields=%2A`)
+                .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
                 .once()
                 .reply(200, {
                     comments: [{
@@ -806,7 +806,7 @@ describe('notificationHandler', () => {
 
             const postData = {}
             const googleChangeListScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/changes?pageToken=startPageToken`)
+                .get(/\/drive\/v3\/changes.+$/)
                 .once()
                 .reply(200, {
                     changes: [
@@ -818,7 +818,7 @@ describe('notificationHandler', () => {
                     ]
                 });
             const googleFileScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId?fields=id%2Cname%2CwebViewLink%2CiconLink%2Cowners%2CviewedByMe%2CsharedWithMeTime%2CownedByMe&supportsAllDrives=true`)
+                .get(/\/drive\/v3\/files\/fileId\?fields.+$/)
                 .once()
                 .reply(200, {
                     name: fileName,
@@ -834,7 +834,7 @@ describe('notificationHandler', () => {
                     webViewLink: ''
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
-                .get(`/drive/v3/files/fileId/comments?pageSize=1&fields=%2A`)
+                .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
                 .once()
                 .reply(200, {
                     comments: [{

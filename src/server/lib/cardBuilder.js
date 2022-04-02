@@ -21,7 +21,7 @@ async function subscriptionListCard(botId, groupId) {
             groupId
         }
     });
-    
+
     const activeSubscriptionList = [];;
     const mutedSubscriptionList = [];;
     for (const subscription of subscriptions) {
@@ -200,7 +200,11 @@ function newFileShareCard(rawCardData) {
         userEmail: rawCardData.userEmail,
         fileIconUrl: rawCardData.fileIconUrl,
         fileName: rawCardData.fileName,
-        fileUrl: rawCardData.fileUrl
+        fileUrl: rawCardData.fileUrl,
+        fileType: rawCardData.fileType,
+        ownerEmail: rawCardData.ownerEmail ? `(${rawCardData.ownerEmail})` : '',
+        ownerDisplayName: rawCardData.ownerDisplayName,
+        modifiedTime: rawCardData.modifiedTime
     };
     const card = template.expand({
         $root: cardData
