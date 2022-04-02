@@ -1,6 +1,6 @@
 ## RingCentral Google Drive Add-In
 
-RingCentral’s Google Drive Add-in is a bot within [RingCentral App](https://www.ringcentral.com/apps/rc-app) that alerts users to `new file shares` and `new comments`.  In addition to these key features, the following additional features are available with this integration:
+RingCentral’s Google Drive Add-in is a bot within [RingCentral App](https://www.ringcentral.com/apps/rc-app) that alerts users to `NEW FILE SHARES` and `NEW COMMENTS`.  In addition to these key features, the following additional features are available with this integration:
 - Be notified of new file shares and comments without leaving the RingCentral App and checking your email. 
 - Interact with comments by submitting your own comments to a Google doc without ever leaving RingCentral.
 - Received notifications the way you want to in Realtime, Daily or Weekly to control your interaction with Google Drive
