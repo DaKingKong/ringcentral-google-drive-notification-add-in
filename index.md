@@ -23,13 +23,15 @@ The following content shows what we do with your Google Drive data:
 
 | Data Action                               	| Purpose                                                                                                                 	|
 |-------------------------------------------	|-------------------------------------------------------------------------------------------------------------------------	|
-| Get user data                             	| fetch user info so to build up an user profile in our database for our features                                         	|
-| Subscribe to changes on your Google Drive 	| monitor new changes on your Google Drive and setup our server to receive corresponding info from Google services        	|
-| Get file changes data                     	| fetch latest changes info so to identify the types of changes                                                           	|
-| Get file data                             	| fetch file info so to show users a clear and comprehensive message on both New Comment and New File Share notifications 	|
-| Get comment data                          	| fetch comment info so to show users a clear and comprehensive message on New Comment notifications                      	|
-| Create reply                              	| create replies under comments so to let user be able to reply comments directly as from within RingCentral App          	|
-| Create file access permissions            	| create permissions so to grant user access to files                                                                     	|
+| Get user data                             	| collect user information so we know who has access to a document or who is subscribing to events                                         	|
+| Subscribe to changes on your Google Drive 	| monitor document changes on your Google Drive and send the details about what changed so we can notify you of the changes        	|
+| Get file changes data                     	| actively get the latest changes to a document so we can identify the types of changes made to it                                                           	|
+| Get file data                             	| 
+specifically retrieve details about the comment like who wrote it and what did they say along with new file share notifications 	|
+| Get comment data                          	| actively get the comment info so to show users a clear and comprehensive message on new comment notifications                      	|
+| Create reply                              	| 
+create a reply from you to comments in a Google Doc directly from within RingCentral App          	|
+| Create file access permissions            	| allow you to grant user access to files by creating the appropriate permission                                                                     	|
 | Stop subscription channel                 	| let user completely unsubscribe from new change notifications                                                           	|
 
 ### Additional Info
