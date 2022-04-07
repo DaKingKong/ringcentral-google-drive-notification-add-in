@@ -14,12 +14,12 @@ const helperText =
     '1. Send `New File Share` notifications via Direct Message (realtime)\n' +
     '2. Send `New Comment` notifications for subscribed files to conversations (realtime, daily, weekly)\n' +
     '3. Detect `Google File Link` posted in conversations and check for all members accesses. File owner can then grant access.\n\n' +
-    'My commands:\n' +
-    '1. `@bot login`: **Login** with your Google Account\n' +
-    '2. `@bot logout`: **Logout** your Google Account and **clear all** subscriptions created by it\n' +
-    '3. `@bot checkauth`: **Check** team members on their Google Account login status and remind those who don\'t have Google Account authorized\n' +
-    '4. `@bot sub`: **Create** a new subscription for `New Comment` under this channel\n' +
-    '5. `@bot list`: **List** all subscriptions for `New Comment` under this channel\n\n' +
+    'Message me **directly** with a `{command}` OR in a **team** with `@Google Drive Bot {command}`. My commands:\n' +
+    '1. `login`: **Login** with your Google Account\n' +
+    '2. `logout`: **Logout** your Google Account and **clear all** subscriptions created by it\n' +
+    '3. `checkauth`: **Check** team members on their Google Account login status and remind those who don\'t have Google Account authorized\n' +
+    '4. `sub`: **Create** a new subscription for `New Comment` under this channel\n' +
+    '5. `list`: **List** all subscriptions for `New Comment` under this channel\n\n' +
     'Note: It\'s recommended to add me into a team that has `<50` members for good `response speed` and avoid `too many subscriptions` from different members.'
 
 const botHandler = async event => {

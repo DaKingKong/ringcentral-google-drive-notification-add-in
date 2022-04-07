@@ -58,7 +58,7 @@ async function onReceiveNotification(googleUser) {
     console.log(`Latest changes: ${JSON.stringify(latestChanges, null, 2)}`)
     for (const change of latestChanges) {
         const fileId = change.fileId;
-        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,modifiedTime,ownedByMe,mimeType', supportsAllDrives: true })
+        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,modifiedTime,ownedByMe,mimeType,sharingUser', supportsAllDrives: true })
         const fileData = fileResponse.data;
         const googleFile = await GoogleFile.findByPk(fileId);
 
@@ -74,16 +74,17 @@ async function onReceiveNotification(googleUser) {
             console.log('===========NEW FILE============');
             console.log('drive.files.get:', fileData)
             const owner = fileData.owners[0];
+            const sharingUser = fileData.sharingUser;
             const cardData = {
-                userAvatar: owner.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
-                username: owner.displayName,
-                userEmail: owner.emailAddress ?? "",
+                userAvatar: sharingUser.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
+                username: sharingUser.displayName ?? "Someone",
+                userEmail: sharingUser.emailAddress ?? "",
                 fileIconUrl: fileData.iconLink,
                 fileName: fileData.name,
                 fileUrl: fileData.webViewLink,
                 fileType: getFileTypeFromMimeType(fileData.mimeType),
-                ownerEmail: fileData.owners[0].emailAddress,
-                ownerDisplayName: fileData.owners[0].displayName,
+                ownerEmail: owner.emailAddress,
+                ownerDisplayName: owner.displayName,
                 modifiedTime: fileData.modifiedTime
             };
             const card = cardBuilder.newFileShareCard(cardData);

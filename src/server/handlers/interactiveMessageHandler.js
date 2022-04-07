@@ -23,7 +23,9 @@ async function interactiveMessages(req, res) {
             }
         }
         const body = req.body;
-        console.log(`Incoming interactive message: ${JSON.stringify(body, null, 2)}`);
+        if (process.env.NODE_ENV !== 'test') {
+            console.log(`Incoming interactive message: ${JSON.stringify(body, null, 2)}`);
+        }
         if (!body.data || !body.user || !body.data.botId) {
             res.status(400);
             res.send('Params error');
