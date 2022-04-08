@@ -75,7 +75,7 @@ async function onReceiveNotification(googleUser) {
             console.log('drive.files.get:', fileData)
             const owner = fileData.owners[0];
             const sharingUser = fileData.sharingUser;
-            const accessibilityVerb = getVerbFromPermissionRole(fileData.permissions.filter(p => p.emailAddress && p.emailAddress === googleUser.email)[0].role);
+            const accessibilityVerb = getVerbFromPermissionRole(fileData.permissions.filter(p => p.emailAddress && p.emailAddress === googleUser.email)[0]?.role);
             const cardData = {
                 userAvatar: sharingUser.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
                 username: sharingUser.displayName ?? "Someone",

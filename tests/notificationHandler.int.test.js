@@ -203,7 +203,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleUser = await GoogleUser.findByPk(googleUserId);
             await googleUser.update({
@@ -261,7 +262,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleUser = await GoogleUser.findByPk(googleUserId);
             await googleUser.update({
@@ -320,7 +322,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: 'Sharing User Name',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleUser = await GoogleUser.findByPk(googleUserId);
             await googleUser.update({
@@ -388,7 +391,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleUser = await GoogleUser.findByPk(googleUserId);
             await googleUser.update({
@@ -446,7 +450,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
                 .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
@@ -513,7 +518,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
                 .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
@@ -588,7 +594,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
                 .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
@@ -658,7 +665,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
                 .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
@@ -728,7 +736,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
                 .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
@@ -804,7 +813,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
                 .get(/\/drive\/v3\/files\/fileId\/comments.+$/)
@@ -886,7 +896,8 @@ describe('notificationHandler', () => {
                         photoLink: '',
                         displayName: '',
                         emailAddress: ''
-                    }
+                    },
+                    permissions: []
                 });
             const googleCommentScope = nock('https://www.googleapis.com')
                 .get(/\/drive\/v3\/files\/fileId\/comments.+$/)

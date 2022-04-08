@@ -188,9 +188,7 @@ const botHandler = async event => {
                                 rcUserId: id
                             }
                         });
-                        console.log(`Checking google file access for: ${JSON.stringify(googleUserToCheckFileAccess, null, 2)} `);
                         const hasAccess = await authorizationHandler.checkUserFileAccess(googleUserToCheckFileAccess, fileId);
-                        console.log(`Google User: ${googleUserToCheckFileAccess.email} ${hasAccess ? "has access" : "has no access"} to file.`);
                         if (!hasAccess) {
                             userWithoutAccessInfo.push({
                                 rcUserId: id,
