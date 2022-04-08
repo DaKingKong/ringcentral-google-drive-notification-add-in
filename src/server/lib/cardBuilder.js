@@ -204,7 +204,8 @@ function newFileShareCard(rawCardData) {
         fileType: rawCardData.fileType,
         ownerEmail: rawCardData.ownerEmail ? `(${rawCardData.ownerEmail})` : '',
         ownerDisplayName: rawCardData.ownerDisplayName,
-        modifiedTime: rawCardData.modifiedTime
+        modifiedTime: rawCardData.modifiedTime,
+        accessibilityVerb: rawCardData.accessibilityVerb
     };
     const card = template.expand({
         $root: cardData

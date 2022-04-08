@@ -58,7 +58,7 @@ async function onReceiveNotification(googleUser) {
     console.log(`Latest changes: ${JSON.stringify(latestChanges, null, 2)}`)
     for (const change of latestChanges) {
         const fileId = change.fileId;
-        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,modifiedTime,ownedByMe,mimeType,sharingUser', supportsAllDrives: true })
+        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,modifiedTime,ownedByMe,mimeType,sharingUser,permissions', supportsAllDrives: true })
         const fileData = fileResponse.data;
         const googleFile = await GoogleFile.findByPk(fileId);
 
@@ -75,6 +75,7 @@ async function onReceiveNotification(googleUser) {
             console.log('drive.files.get:', fileData)
             const owner = fileData.owners[0];
             const sharingUser = fileData.sharingUser;
+            const accessibilityVerb = getVerbFromPermissionRole(fileData.permissions.filter(p => p.emailAddress && p.emailAddress === googleUser.email)[0].role);
             const cardData = {
                 userAvatar: sharingUser.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
                 username: sharingUser.displayName ?? "Someone",
@@ -85,7 +86,8 @@ async function onReceiveNotification(googleUser) {
                 fileType: getFileTypeFromMimeType(fileData.mimeType),
                 ownerEmail: owner.emailAddress,
                 ownerDisplayName: owner.displayName,
-                modifiedTime: fileData.modifiedTime
+                modifiedTime: fileData.modifiedTime,
+                accessibilityVerb
             };
             const card = cardBuilder.newFileShareCard(cardData);
             // Send adaptive card to your channel in RingCentral App
@@ -216,6 +218,22 @@ function getFileTypeFromMimeType(mimeType) {
             return 'spreadsheet';
         default:
             return 'file';
+    }
+}
+
+function getVerbFromPermissionRole(role) {
+    switch (role) {
+        case 'owner':
+        case 'organizer':
+        case 'fileOrganizer':
+        case 'writer':
+            return 'edit';
+        case 'commenter':
+            return 'comment';
+        case 'reader':
+            return 'view';
+        default:
+            return 'access';
     }
 }
 

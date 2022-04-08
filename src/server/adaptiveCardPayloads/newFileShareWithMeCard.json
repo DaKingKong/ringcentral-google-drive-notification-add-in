@@ -30,14 +30,7 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "${username}",
-                            "wrap": true
-                        },
-                        {
-                            "type": "TextBlock",
-                            "spacing": "None",
-                            "text": "${userEmail}",
-                            "isSubtle": true,
+                            "text": "${username} (${userEmail}) has invited you to **${accessibilityVerb}** the following document:",
                             "wrap": true
                         }
                     ],
