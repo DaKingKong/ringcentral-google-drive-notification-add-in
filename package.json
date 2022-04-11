@@ -1,6 +1,6 @@
 {
     "name": "ringcentral-google-drive-notification-add-in",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "description": "RingCentral Add-In App",
     "keywords": [
         "RingCentral",
@@ -22,7 +22,8 @@
         "deploy": "npm run serverless-deploy",
         "test": "set NODE_ENV=test&&jest --forceExit -i",
         "test-coverage": "set NODE_ENV=test&&jest --coverage",
-        "tunnel": "lite-http-tunnel start 6066"
+        "tunnel": "lite-http-tunnel start 6066",
+        "release": "npm run test&&node bin/index.js release"
     },
     "devDependencies": {
         "@babel/core": "^7.11.6",

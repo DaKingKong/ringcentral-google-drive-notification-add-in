@@ -147,8 +147,7 @@ function fileInfoCard(botId, googleFile) {
 function authCard(authLink) {
     const template = new Template(authCardTemplateJson);
     const cardData = {
-        link: authLink,
-        buttonImageUrl: `${process.env.RINGCENTRAL_CHATBOT_SERVER}/static/google-login-button.png`
+        link: authLink
     }
     const card = template.expand({
         $root: cardData
