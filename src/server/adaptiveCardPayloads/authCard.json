@@ -22,14 +22,12 @@
             "color": "Warning"
         },
         {
-            "type": "ActionSet",
-            "actions": [
-                {
-                    "type": "Action.OpenUrl",
-                    "title": "Login",
-                    "url": "${link}"
-                }
-            ]
+            "type": "Image",
+            "selectAction": {
+                "type": "Action.OpenUrl",
+                "url": "${link}"
+            },
+            "url": "${buttonImageUrl}"
         },
         {
             "type": "ColumnSet",
