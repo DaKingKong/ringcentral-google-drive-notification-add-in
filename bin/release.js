@@ -47,6 +47,7 @@ async function release({
         await fs.writeFile(resolve(__dirname, packageJsonPath), JSON.stringify(packageJson, null, 4));
         console.log('package.json version updated.');
         await git.add('*').commit(commit).push().addTag(versionTag);
+        await git.push('gitlab-repo', '--tags');
         console.log(`git pushed with tag: ${versionTag}`);
 
         const octokit = new Octokit({
