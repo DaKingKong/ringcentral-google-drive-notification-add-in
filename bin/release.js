@@ -41,7 +41,7 @@ async function release({
             patch = Number(patch) + 1;
         }
         const newVersionNumber = `${major}.${minor}.${patch}`;
-        const versionTag = `v${newVersionNumber}`;
+        const versionTag = `${newVersionNumber}`;
         packageJson.version = newVersionNumber;
         console.log(`new version: ${newVersionNumber}`);
         await fs.writeFile(resolve(__dirname, packageJsonPath), JSON.stringify(packageJson, null, 4));
