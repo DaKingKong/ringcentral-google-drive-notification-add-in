@@ -27,7 +27,7 @@
                 "type": "Action.OpenUrl",
                 "url": "${link}"
             },
-            "url": "https://developers.google.com/identity/images/btn_google_signin_dark_normal_web.png"
+            "url": "https://raw.githubusercontent.com/ringcentral/ringcentral-google-drive-notification-add-in/master/staticResources/google-login-button.png"
         },
         {
             "type": "ColumnSet",

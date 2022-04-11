@@ -1,5 +1,4 @@
 const path = require('path');
-const express = require('express');
 const { extendApp } = require('ringcentral-chatbot-core');
 
 const { botHandler } = require('./handlers/botHandler');
@@ -43,7 +42,4 @@ exports.appExtend = (app) => {
   app.get('/home', function (req, res) {
     res.sendFile(path.join(__dirname, 'html/index.html'));
   });
-
-  // host static files
-  app.use('/static/', express.static(__dirname + '/static'));
 }
