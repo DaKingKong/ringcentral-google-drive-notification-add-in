@@ -58,7 +58,7 @@ async function onReceiveNotification(googleUser) {
     console.log(`Latest changes: ${JSON.stringify(latestChanges, null, 2)}`)
     for (const change of latestChanges) {
         const fileId = change.fileId;
-        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,modifiedTime,ownedByMe,mimeType,sharingUser,permissions', supportsAllDrives: true })
+        const fileResponse = await drive.files.get({ fileId, fields: 'id,name,webViewLink,iconLink,owners,viewedByMe,sharedWithMeTime,modifiedTime,ownedByMe,mimeType,sharingUser,capabilities', supportsAllDrives: true })
         const fileData = fileResponse.data;
         const googleFile = await GoogleFile.findByPk(fileId);
 
@@ -72,10 +72,10 @@ async function onReceiveNotification(googleUser) {
         // Case: New File Share With Me
         if (!fileData.ownedByMe && googleUser.isReceiveNewFile && fileData.sharedWithMeTime && isEventNew(change.time, fileData.sharedWithMeTime)) {
             console.log('===========NEW FILE============');
-            console.log('drive.files.get:', fileData)
+            console.log('drive.files.get:', JSON.stringify(fileData, null, 2))
             const owner = fileData.owners[0];
             const sharingUser = fileData.sharingUser;
-            const accessibilityVerb = getVerbFromPermissionRole(fileData.permissions.filter(p => p.emailAddress && p.emailAddress === googleUser.email)[0]?.role);
+            const accessibilityVerb = getVerbFromCapabilitiesRole(fileData.capabilities);
             const cardData = {
                 userAvatar: sharingUser.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
                 username: sharingUser.displayName ?? "Someone",
@@ -221,19 +221,15 @@ function getFileTypeFromMimeType(mimeType) {
     }
 }
 
-function getVerbFromPermissionRole(role) {
-    switch (role) {
-        case 'owner':
-        case 'organizer':
-        case 'fileOrganizer':
-        case 'writer':
-            return 'edit';
-        case 'commenter':
-            return 'comment';
-        case 'reader':
-            return 'view';
-        default:
-            return 'access';
+function getVerbFromCapabilitiesRole(capabilities) {
+    if (capabilities.canEdit) {
+        return 'edit';
+    }
+    else if (capabilities.canComment) {
+        return 'comment';
+    }
+    else {
+        return 'view';
     }
 }
 

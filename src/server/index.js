@@ -1,4 +1,5 @@
 const path = require('path');
+const packageJson = require('../../package.json');
 const { extendApp } = require('ringcentral-chatbot-core');
 
 const { botHandler } = require('./handlers/botHandler');
@@ -29,7 +30,7 @@ exports.appExtend = (app) => {
     app.listen(process.env.RINGCENTRAL_CHATBOT_EXPRESS_PORT);
   }
 
-  app.get('/is-alive', (req, res) => { res.send('OK'); });
+  app.get('/is-alive', (req, res) => { res.send(packageJson.version); });
 
   console.log('server running...');
   console.log(`bot oauth uri: ${process.env.RINGCENTRAL_CHATBOT_SERVER}${botConfig.botRoute}/oauth`);
