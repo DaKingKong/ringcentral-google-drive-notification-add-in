@@ -143,7 +143,7 @@ const botHandler = async event => {
 
                     // if rc user has NO authorized Google Account, send an auth card
                     if (!googleUserForPost) {
-                        await botForPost.sendMessage(postGroupId, { text: `Google Drive file link detected. But ![:Person](${creatorId}) doesn't have an authorized Google Account. Please @me with \`login\` command to authorize.` });
+                        await botForPost.sendMessage(postGroupId, { text: `Google Drive file link detected. But ![:Person](${creatorId}) doesn't have an authorized Google Account. Please direct message with \`login\` command to authorize.` });
                         break;
                     }
 
@@ -229,7 +229,7 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
         for (const userId of userIdsWithoutGoogleAccount) {
             noAccountMessage += `![:Person](${userId}) `;
         }
-        noAccountMessage += '\n\nPlease @me with `login` command to authorize.';
+        noAccountMessage += '\n\nPlease direct message with `login` command to authorize.';
     }
 
     return {

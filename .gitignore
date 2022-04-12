@@ -112,4 +112,3 @@ serverless-deploy/*.js
 serverless-deploy/*.json
 serverless-deploy/**/
 public/*
-src/server/html/*
