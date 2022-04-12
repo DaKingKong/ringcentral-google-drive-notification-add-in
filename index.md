@@ -15,7 +15,7 @@ RingCentral’s Google Drive Add-in is a bot within [RingCentral App](https://ww
 - `@bot list`: **List** all subscriptions for New Comment under this channel
 - `@bot config`: (**Only works in Direct Message**)**Config** user settings
 
-[![RingCentral Google Drive Bot](https://res.cloudinary.com/marcomontalbano/image/upload/v1648875992/video_to_markdown/images/youtube--_Xa2__K3Jaw-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://youtu.be/_Xa2__K3Jaw "RingCentral Google Drive Bot")
+[![RingCentral Google Drive Bot](https://res.cloudinary.com/marcomontalbano/image/upload/v1648875992/video_to_markdown/images/youtube--_Xa2__K3Jaw-c05b58ac6eb4c4700831b2b3070cd403.jpg)](https://youtu.be/WKPXDZQ38qU "RingCentral Google Drive Bot")
 
 ### Data Usage Justification
 
