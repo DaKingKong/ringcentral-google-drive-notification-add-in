@@ -143,7 +143,7 @@ const botHandler = async event => {
 
                     // if rc user has NO authorized Google Account, send an auth card
                     if (!googleUserForPost) {
-                        await botForPost.sendMessage(postGroupId, { text: `Google Drive file link detected. But ![:Person](${creatorId}) doesn't have an authorized Google Account. Please direct message with \`login\` command to authorize.` });
+                        await botForPost.sendMessage(postGroupId, { text: `Google Drive file link detected. But ![:Person](${creatorId}) doesn't have an authorized Google Account. Please @mention **Google Drive Bot** with \`login\` command so I may verify your access to the Google Doc.` });
                         break;
                     }
 
@@ -225,11 +225,11 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
     const userIdsWithGoogleAccount = inGroupUserInfo.rcUserIdsWithGoogleAccount;
     let noAccountMessage = null;
     if (userIdsWithoutGoogleAccount.length > 0) {
-        noAccountMessage = 'Google Drive account not found for following users:\n\n'
+        noAccountMessage = 'I could not verify the following users:\n\n'
         for (const userId of userIdsWithoutGoogleAccount) {
             noAccountMessage += `![:Person](${userId}) `;
         }
-        noAccountMessage += '\n\nPlease direct message with `login` command to authorize.';
+        noAccountMessage += '\n\nPlease @mention **Google Drive Bot** with `login` command so I may verify your access to the Google Doc.';
     }
 
     return {

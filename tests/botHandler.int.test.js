@@ -299,7 +299,7 @@ describe('botHandler', () => {
             await botHandler(event);
 
             // Assert
-            expect(requestBody.text).toBe("Google Drive account not found for following users:\n\n![:Person](unknownRcUserId) \n\nPlease direct message with `login` command to authorize.");
+            expect(requestBody.text).toBe("I could not verify the following users:\n\n![:Person](unknownRcUserId) \n\nPlease @mention **Google Drive Bot** with `login` command so I may verify your access to the Google Doc.");
         });
     });
 
@@ -550,7 +550,7 @@ describe('botHandler', () => {
             await botHandler(event);
 
             // Assert
-            expect(requestBody.text).toBe("Google Drive file link detected. But ![:Person](unknownRcUserId) doesn't have an authorized Google Account. Please direct message with `login` command to authorize.");
+            expect(requestBody.text).toBe("Google Drive file link detected. But ![:Person](unknownRcUserId) doesn't have an authorized Google Account. Please @mention **Google Drive Bot** with `login` command so I may verify your access to the Google Doc.");
         });
 
         test('has Google Account, has Google File, all members have access - file info card', async () => {
@@ -619,7 +619,7 @@ describe('botHandler', () => {
             await botHandler(event);
 
             // Assert            
-            expect(requestBody.text).toBe("Google Drive account not found for following users:\n\n![:Person](noFileRcUserId) \n\nPlease direct message with `login` command to authorize.");
+            expect(requestBody.text).toBe("I could not verify the following users:\n\n![:Person](noFileRcUserId) \n\nPlease @mention **Google Drive Bot** with `login` command so I may verify your access to the Google Doc.");
         });
 
         test('all has Google Account, has Google File, a member no File Access - file info card + no access message + access grant card', async () => {

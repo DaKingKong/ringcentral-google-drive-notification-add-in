@@ -584,7 +584,7 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "[Feedback](https://github.com/ringcentral/ringcentral-google-drive-notification-add-in/issues/new)",
+                            "text": "[Feedback](https://forms.gle/Ngr1M6hhEGxUL9XdA)",
                             "wrap": true,
                             "size": "Small",
                             "horizontalAlignment": "Left"
