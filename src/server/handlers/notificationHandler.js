@@ -166,40 +166,51 @@ async function SendDigestNotification(subscriptions) {
         return;
     }
 
-    const bot = await Bot.findByPk(subscriptions[0].botId);
-    const groupIds = [];
+    const botIds = [];
     for (const sub of subscriptions) {
-        if (!groupIds.includes(sub.groupId)) {
-            groupIds.push(sub.groupId);
+        if (!botIds.includes(sub.botId)) {
+            botIds.push(sub.botId);
         }
     }
 
-    for (const groupId of groupIds) {
-        const subscriptionsInGroup = subscriptions.filter(s => s.groupId == groupId);
-        let cardData =
-        {
-            commentNotifications: []
-        }
-
-        for (const sub of subscriptionsInGroup) {
-            if (sub.cachedInfo.commentNotifications.length === 0) {
-                continue;
+    // different RingCentral App organizations would have different botId
+    for (const botId of botIds) {
+        const subscriptionsUnderOrg = subscriptions.filter(s => s.botId == botId);
+        const bot = await Bot.findByPk(botId);
+        const groupIds = [];
+        for (const sub of subscriptionsUnderOrg) {
+            if (!groupIds.includes(sub.groupId)) {
+                groupIds.push(sub.groupId);
             }
-            console.log(`notification to trigger count: ${sub.cachedInfo.commentNotifications.length}`);
-            cardData.commentNotifications = cardData.commentNotifications.concat(sub.cachedInfo.commentNotifications);
         }
 
-        const card = cardBuilder.commentDigestCard(cardData);
-        // Send adaptive card to your channel in RingCentral App
-        await bot.sendAdaptiveCard(groupId, card);
+        for (const groupId of groupIds) {
+            const subscriptionsInGroup = subscriptionsUnderOrg.filter(s => s.groupId == groupId);
+            let cardData =
+            {
+                commentNotifications: []
+            }
 
-        // Clear db data only if all info is sent successfully
-        for (const sub of subscriptionsInGroup) {
-            await sub.update({
-                cachedInfo: {
-                    commentNotifications: []
+            for (const sub of subscriptionsInGroup) {
+                if (sub.cachedInfo.commentNotifications.length === 0) {
+                    continue;
                 }
-            });
+                console.log(`notification to trigger count: ${sub.cachedInfo.commentNotifications.length}`);
+                cardData.commentNotifications = cardData.commentNotifications.concat(sub.cachedInfo.commentNotifications);
+            }
+
+            const card = cardBuilder.commentDigestCard(cardData);
+            // Send adaptive card to your channel in RingCentral App
+            await bot.sendAdaptiveCard(groupId, card);
+
+            // Clear db data only if all info is sent successfully
+            for (const sub of subscriptionsInGroup) {
+                await sub.update({
+                    cachedInfo: {
+                        commentNotifications: []
+                    }
+                });
+            }
         }
     }
 }
