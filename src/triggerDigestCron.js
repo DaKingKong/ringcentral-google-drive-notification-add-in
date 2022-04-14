@@ -4,6 +4,7 @@ const { Subscription } = require('./server/models/subscriptionModel');
 const notificationHandler = require('./server/handlers/notificationHandler');
 async function triggerDigest() {
     try {
+        console.log('digest triggered...')
         const weeklySubscriptions = await Subscription.findAll({
             where: {
                 state: 'weekly'
@@ -17,6 +18,7 @@ async function triggerDigest() {
         });
         const subscriptionsOnDay = weeklySubscriptionsOnDay.concat(dailySubscriptions);
         const subscriptionsToTrigger = subscriptionsOnDay.filter(s => moment(new Date()).utc().hour() - moment(s.startTime).utc().hour() === 0);
+        console.log(`digest count: ${subscriptionsToTrigger.length}`)
         await notificationHandler.SendDigestNotification(subscriptionsToTrigger);
     }
     catch (e) {

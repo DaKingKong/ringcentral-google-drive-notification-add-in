@@ -175,6 +175,7 @@ async function SendDigestNotification(subscriptions) {
 
     // different RingCentral App organizations would have different botId
     for (const botId of botIds) {
+        console.log(`triggering digest for bot ${botId}`);
         const subscriptionsUnderOrg = subscriptions.filter(s => s.botId == botId);
         const bot = await Bot.findByPk(botId);
         const groupIds = [];
@@ -191,6 +192,7 @@ async function SendDigestNotification(subscriptions) {
                 commentNotifications: []
             }
 
+            console.log(`triggering digest to group ${groupId} with count ${subscriptionsInGroup.length}`);
             for (const sub of subscriptionsInGroup) {
                 if (sub.cachedInfo.commentNotifications.length === 0) {
                     continue;
