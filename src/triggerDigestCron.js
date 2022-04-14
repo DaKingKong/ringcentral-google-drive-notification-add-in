@@ -26,7 +26,7 @@ async function triggerDigest() {
     }
 }
 
-// Commented out for local testing
-triggerDigest()
+// Commented out. It's for local testing
+// triggerDigest()
 
 exports.app = triggerDigest;

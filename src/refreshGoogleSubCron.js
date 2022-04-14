@@ -36,7 +36,7 @@ async function refreshSubscription() {
     }
 }
 
-// Commented out for local testing
-refreshSubscription()
+// Commented out. It's for local testing
+// refreshSubscription()
 
 exports.app = refreshSubscription;
