@@ -41,9 +41,8 @@
         },
         {
             "type": "TextBlock",
-            "text": "Click below button to grant access to above users",
-            "wrap": true,
-            "weight": "Bolder"
+            "text": "Click below button to grant access to:\n**${rcUserNameString}**",
+            "wrap": true
         },
         {
             "type": "Input.ChoiceSet",

@@ -11,6 +11,7 @@ async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken) {
 
     const membersInGroup = rcGroupInfo.members;
     const nonBotNonGuestMembersInGroup = [];
+    const rcUserInfo = [];
 
     const bulkRes = await rcAPI.getBulkUserInfo(membersInGroup, accessToken);
 
@@ -22,6 +23,11 @@ async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken) {
             }
 
             nonBotNonGuestMembersInGroup.push(memberInfo.id);
+            rcUserInfo.push(
+                {
+                    id: memberInfo.id,
+                    name: `${memberInfo.firstName} ${memberInfo.lastName}`
+                });
         }
         catch (e) {
             if (e.message === 'Request failed with status code 404') {
@@ -39,10 +45,12 @@ async function getInGroupRcUserGoogleAccountInfo(groupId, accessToken) {
     });
 
     const rcUserIdsWithGoogleAccount = existingUsers.map(u => u.rcUserId);
+    const rcUserIdsAndNamesWithGoogleAccount = rcUserInfo.filter(r => rcUserIdsWithGoogleAccount.includes(r.id));
     const rcUserIdsWithoutGoogleAccount = nonBotNonGuestMembersInGroup.filter(u => !rcUserIdsWithGoogleAccount.includes(u));
 
     const inGroupUserInfo = {
         rcUserIdsWithGoogleAccount,
+        rcUserIdsAndNamesWithGoogleAccount,
         rcUserIdsWithoutGoogleAccount
     }
 
@@ -115,7 +123,7 @@ async function oauthCallback(req, res) {
         res.send('Internal error.');
     }
     res.status(200);
-    res.send('<!doctype><html><body><script>window.close()</script></body></html>')
+    res.send('<!doctype><html><body>Successfully authorized. You can close this page now.<script>window.close()</script></body></html>')
 };
 
 async function checkUserFileAccess(googleUser, fileId) {

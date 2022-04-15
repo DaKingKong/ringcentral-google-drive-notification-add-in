@@ -112,10 +112,11 @@ function subscribeConfigCard(subscriptionId, fileId, iconLink, fileName, botId, 
 }
 
 
-function grantFileAccessCard(botId, googleFile, googleUserInfo) {
+function grantFileAccessCard(botId, googleFile, googleUserInfo, rcUserNames) {
     const template = new Template(grantFileAccessCardTemplateJson);
     const cardData = {
         googleUserInfo,
+        rcUserNameString: rcUserNames.join(),
         fileId: googleFile.id,
         fileName: googleFile.name,
         fileIconUrl: googleFile.iconLink,
@@ -144,10 +145,12 @@ function fileInfoCard(botId, googleFile) {
     return card;
 }
 
-function authCard(authLink) {
+function authCard(authLink, additionalInfoText) {
     const template = new Template(authCardTemplateJson);
     const cardData = {
-        link: authLink
+        link: authLink,
+        additionalInfoText,
+        showAdditionalInfo: additionalInfoText != null
     }
     const card = template.expand({
         $root: cardData

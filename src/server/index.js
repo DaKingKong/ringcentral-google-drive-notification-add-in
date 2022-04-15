@@ -9,6 +9,7 @@ const interactiveMessageHandler = require('./handlers/interactiveMessageHandler'
 const { GoogleUser } = require('./models/googleUserModel');
 const { GoogleFile } = require('./models/googleFileModel');
 const { Subscription } = require('./models/subscriptionModel');
+const { RcUser } = require('./models/rcUserModel');
 
 // extends or override express app as you need
 exports.appExtend = (app) => {
@@ -19,7 +20,8 @@ exports.appExtend = (app) => {
     models: { // optional
       GoogleUser,
       GoogleFile,
-      Subscription
+      Subscription,
+      RcUser
     }
   }
 

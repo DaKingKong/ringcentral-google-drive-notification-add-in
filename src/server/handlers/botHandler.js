@@ -4,7 +4,9 @@ const { getOAuthApp } = require('../lib/oauth');
 const rcAPI = require('../lib/rcAPI');
 const cardBuilder = require('../lib/cardBuilder');
 const { GoogleUser } = require('../models/googleUserModel');
+const { RcUser } = require('../models/rcUserModel');
 const { google } = require('googleapis')
+const moment = require('moment');
 
 const { GoogleFile } = require('../models/googleFileModel');
 
@@ -39,7 +41,7 @@ const botHandler = async event => {
                         rcUserId: userId
                     }
                 })
-                
+
                 // Create/Find DM conversation to the RC user
                 const createGroupResponse = await rcAPI.createConversation([userId], botForMessage.token.access_token);
 
@@ -70,13 +72,8 @@ const botHandler = async event => {
                         }
                         break;
                     case 'checkauth':
-                        const checkAccessResult = await checkMembersGoogleAccountAuth(botForMessage, cmdGroup.id);
-                        if (checkAccessResult.returnMessage) {
-                            await botForMessage.sendMessage(cmdGroup.id, { text: checkAccessResult.returnMessage });
-                        }
-                        else {
-                            await botForMessage.sendMessage(cmdGroup.id, { text: 'All members authorized.' });
-                        }
+                        checkMembersGoogleAccountAuth(botForMessage, cmdGroup.id);
+                        await botForMessage.sendMessage(cmdGroup.id, { text: 'Authorizations checked. Authorization Cards are sent.' });
                         break;
                     case 'sub':
                     case 'subscribe':
@@ -143,14 +140,11 @@ const botHandler = async event => {
 
                     // if rc user has NO authorized Google Account, send an auth card
                     if (!googleUserForPost) {
-                        await botForPost.sendMessage(postGroupId, { text: `Google Drive file link detected. But ![:Person](${creatorId}) doesn't have an authorized Google Account. Please @mention **Google Drive Bot** with \`login\` command so I may verify your access to the Google Doc.` });
+                        await botForPost.sendMessage(postGroupId, { text: `Google Drive file link detected. But you don't have an authorized Google Account. Please @mention **Google Drive Bot** with \`login\` command so I may verify your access to the Google Doc.` });
                         break;
                     }
 
                     const checkAccountResult = await checkMembersGoogleAccountAuth(botForPost, postGroupId);
-                    if (checkAccountResult.returnMessage) {
-                        await botForPost.sendMessage(postGroupId, { text: checkAccountResult.returnMessage });
-                    }
 
                     const fileIdRegex = new RegExp('https://.+google.com/.+?/d/(.+)/.+');
                     const fileId = googleFileLinkInPost.match(fileIdRegex)[1];
@@ -190,8 +184,13 @@ const botHandler = async event => {
                         });
                         const hasAccess = await authorizationHandler.checkUserFileAccess(googleUserToCheckFileAccess, fileId);
                         if (!hasAccess) {
+                            const rcUserName = checkAccountResult.userIdsAndNamesWithGoogleAccount.find(u => u.id == id).name;
                             userWithoutAccessInfo.push({
-                                rcUserId: id,
+                                rcUserInfo:
+                                {
+                                    id,
+                                    name: rcUserName
+                                },
                                 googleUserInfo: {
                                     id: googleUserToCheckFileAccess.id,
                                     email: googleUserToCheckFileAccess.email
@@ -201,12 +200,7 @@ const botHandler = async event => {
                     }
 
                     if (userWithoutAccessInfo.length > 0) {
-                        let noAccessMessage = 'Google Drive file link detected. Following users don\'t have access to above file\n '
-                        for (const user of userWithoutAccessInfo) {
-                            noAccessMessage += `![:Person](${user.rcUserId}) `;
-                        }
-                        await botForPost.sendMessage(postGroupId, { text: noAccessMessage });
-                        const grantFileAccessCard = cardBuilder.grantFileAccessCard(botForPost.id, googleFile, userWithoutAccessInfo.map(u => u.googleUserInfo));
+                        const grantFileAccessCard = cardBuilder.grantFileAccessCard(botForPost.id, googleFile, userWithoutAccessInfo.map(u => u.googleUserInfo), userWithoutAccessInfo.map(u => u.rcUserInfo.name));
                         await botForPost.sendAdaptiveCard(postGroupId, grantFileAccessCard);
                     }
                 }
@@ -223,19 +217,40 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
     const inGroupUserInfo = await authorizationHandler.getInGroupRcUserGoogleAccountInfo(groupId, bot.token.access_token);
     const userIdsWithoutGoogleAccount = inGroupUserInfo.rcUserIdsWithoutGoogleAccount;
     const userIdsWithGoogleAccount = inGroupUserInfo.rcUserIdsWithGoogleAccount;
-    let noAccountMessage = null;
     if (userIdsWithoutGoogleAccount.length > 0) {
-        noAccountMessage = 'I could not verify the following users:\n\n'
         for (const userId of userIdsWithoutGoogleAccount) {
-            noAccountMessage += `![:Person](${userId}) `;
+            const rcUser = await RcUser.findByPk(userId);
+            const nowDate = new Date();
+            const dmGroupResponse = await rcAPI.createConversation([userId], bot.token.access_token);
+            const dmGroupId = dmGroupResponse.id;
+
+            const oauthApp = getOAuthApp();
+            const authLink = `${oauthApp.code.getUri({
+                state: `botId=${bot.id}&rcUserId=${userId}`
+            })}&access_type=offline`;
+            const authCard = cardBuilder.authCard(authLink, 'This card is generated from an automatic access check that is triggered by Google File link posted in a conversation. It will NOT show again within a month.');
+            if (rcUser) {
+                if (moment(nowDate).unix() > moment(rcUser.authReminderExpiryDateTime).unix()) {
+                    await bot.sendAdaptiveCard(dmGroupId, authCard);
+                    await rcUser.update({
+                        authReminderExpiryDateTime: moment(nowDate).add(1, 'month')
+                    });
+                }
+            }
+            else {
+                await RcUser.create({
+                    id: userId,
+                    authReminderExpiryDateTime: moment(nowDate).add(1, 'month')
+                });
+                await bot.sendAdaptiveCard(dmGroupId, authCard);
+            }
         }
-        noAccountMessage += '\n\nPlease @mention **Google Drive Bot** with `login` command so I may verify your access to the Google Doc.';
     }
 
     return {
-        returnMessage: noAccountMessage,
         userIdsWithoutGoogleAccount,
-        userIdsWithGoogleAccount
+        userIdsWithGoogleAccount,
+        userIdsAndNamesWithGoogleAccount: inGroupUserInfo.rcUserIdsAndNamesWithGoogleAccount
     }
 }
 

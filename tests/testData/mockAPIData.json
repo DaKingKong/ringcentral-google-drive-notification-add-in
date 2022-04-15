@@ -17,6 +17,7 @@
             "user": [
                 {
                     "id": "rcUserId",
+                    "name": "rcUserName",
                     "email": "rcUserEmail"
                 }
             ],
@@ -29,6 +30,7 @@
             "userAndBot": [
                 {
                     "id": "rcUserId",
+                    "name": "rcUserName",
                     "email": "rcUserEmail"
                 },
                 {

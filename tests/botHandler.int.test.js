@@ -272,7 +272,7 @@ describe('botHandler', () => {
             await botHandler(event);
 
             // Assert
-            expect(requestBody.text).toBe("All members authorized.");
+            expect(requestBody.text).toBe("Authorizations checked. Authorization Cards are sent.");
         });
 
         test('a member not authorized - remind authorization message', async () => {
@@ -299,7 +299,7 @@ describe('botHandler', () => {
             await botHandler(event);
 
             // Assert
-            expect(requestBody.text).toBe("I could not verify the following users:\n\n![:Person](unknownRcUserId) \n\nPlease @mention **Google Drive Bot** with `login` command so I may verify your access to the Google Doc.");
+            expect(requestBody.text).toBe("Authorizations checked. Authorization Cards are sent.");
         });
     });
 
@@ -550,7 +550,7 @@ describe('botHandler', () => {
             await botHandler(event);
 
             // Assert
-            expect(requestBody.text).toBe("Google Drive file link detected. But ![:Person](unknownRcUserId) doesn't have an authorized Google Account. Please @mention **Google Drive Bot** with `login` command so I may verify your access to the Google Doc.");
+            expect(requestBody.text).toBe('Google Drive file link detected. But you don\'t have an authorized Google Account. Please @mention **Google Drive Bot** with \`login\` command so I may verify your access to the Google Doc.');
         });
 
         test('has Google Account, has Google File, all members have access - file info card', async () => {
@@ -588,7 +588,7 @@ describe('botHandler', () => {
             expect(requestBody.body[0].text).toBe('Google Drive File');
         });
 
-        test('sender has Google Account, has Google File, another member no Google Account - reminder message for login', async () => {
+        test('sender has Google Account, has Google File, another member no Google Account - auth card', async () => {
             // Arrange
             let requestBody = null;
             rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none)
@@ -611,7 +611,7 @@ describe('botHandler', () => {
                     id: "groupId"
                 }
             }
-            postScope.once('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
+            cardScope.once('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
                 requestBody = JSON.parse(reqBody);
             });
 
@@ -619,12 +619,12 @@ describe('botHandler', () => {
             await botHandler(event);
 
             // Assert            
-            expect(requestBody.text).toBe("I could not verify the following users:\n\n![:Person](noFileRcUserId) \n\nPlease @mention **Google Drive Bot** with `login` command so I may verify your access to the Google Doc.");
+            expect(requestBody.type).toBe('AdaptiveCard');
+            expect(requestBody.body[0].text).toBe('Google Drive Login');
         });
 
         test('all has Google Account, has Google File, a member no File Access - file info card + no access message + access grant card', async () => {
             // Arrange
-            let requestBody = null;
             rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none)
             rcAPI.getBulkUserInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getBulkUserInfo.user);
 
@@ -647,9 +647,6 @@ describe('botHandler', () => {
                     id: "groupId"
                 }
             }
-            postScope.once('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
-                requestBody = JSON.parse(reqBody);
-            });
             let cardRequestBody1 = null;
             let cardRequestBody2 = null;
             cardScope.on('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
@@ -665,8 +662,6 @@ describe('botHandler', () => {
             await botHandler(event);
 
             // Assert            
-            expect(requestBody.text).toBe("Google Drive file link detected. Following users don\'t have access to above file\n ![:Person](rcUserId) ");
-
             expect(cardRequestBody1.type).toBe('AdaptiveCard');
             expect(cardRequestBody1.body[0].text).toBe('Google Drive File');
             expect(cardRequestBody2.type).toBe('AdaptiveCard');
