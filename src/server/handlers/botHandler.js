@@ -228,7 +228,7 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
             const authLink = `${oauthApp.code.getUri({
                 state: `botId=${bot.id}&rcUserId=${userId}`
             })}&access_type=offline`;
-            const authCard = cardBuilder.authCard(authLink, 'This card is generated from an automatic access check that is triggered by Google File link posted in a conversation. It will NOT show again within a month.');
+            const authCard = cardBuilder.authCard(authLink, 'Someone shared a file that requires logging in Google Account to access. Please log in with button below.');
             if (rcUser) {
                 if (moment(nowDate).unix() > moment(rcUser.authReminderExpiryDateTime).unix()) {
                     await bot.sendAdaptiveCard(dmGroupId, authCard);

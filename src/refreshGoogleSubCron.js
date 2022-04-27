@@ -19,12 +19,7 @@ async function refreshSubscription() {
             await subscriptionHandler.createGlobalSubscription(googleUser);
             successMessage += `User: ${googleUser.name}(${googleUser.email}) refreshed.\n`;
         }
-        axios.post(
-            'https://hooks.ringcentral.com/webhook/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvdCI6InUiLCJvaSI6IjE0MDU1MDk2NDgzODciLCJpZCI6IjEzNzg3NTQ1ODcifQ.Nq6z0NWegffNJWZdPIOjePFfCUCgK3bBCk4Z3SDY_hY',
-            {
-                "title": successMessage
-            }
-        );
+        console.log(successMessage);
     }
     catch (e) {
         axios.post(
