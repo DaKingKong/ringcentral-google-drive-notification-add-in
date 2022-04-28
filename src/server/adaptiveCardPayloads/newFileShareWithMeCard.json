@@ -40,7 +40,6 @@
         },
         {
             "type": "ColumnSet",
-            "separator": true,
             "columns": [
                 {
                     "type": "Column",
@@ -60,7 +59,8 @@
                         {
                             "type": "TextBlock",
                             "text": "${fileName}",
-                            "wrap": true
+                            "wrap": true,
+                            "weight": "Bolder"
                         }
                     ],
                     "width": "stretch"
@@ -85,7 +85,6 @@
             ]
         },
         {
-            "separator": true,
             "type": "ColumnSet",
             "columns": [
                 {
