@@ -4,6 +4,7 @@ const { GoogleUser } = require('../models/googleUserModel');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { revokeToken, checkAndRefreshAccessToken } = require('../lib/oauth');
 const cardBuilder = require('../lib/cardBuilder');
+const dialogBuilder = require('../lib/dialogBuilder');
 const rcAPI = require('../lib/rcAPI');
 
 const subscriptionHandler = require('./subscriptionHandler');
@@ -51,10 +52,31 @@ async function interactiveMessages(req, res) {
         // Create/Find DM conversation to the RC user
         const createGroupResponse = await rcAPI.createConversation([rcUserId], bot.token.access_token);
 
-        if (!googleUser) {
+        if (!googleUser && body.data.actionType !== 'auth') {
             await bot.sendMessage(groupId, { text: `![:Person](${rcUserId}) Google Drive account not found. Please message me with \`login\` to login.` });
             res.status(200);
             res.json('OK')
+            return;
+        }
+
+        if (body.data.returnDialog) {
+            let dialogResponse = {
+                type: "dialog",
+                dialog: null
+            };
+            switch (body.data.actionType) {
+                case 'auth':
+                    const authDialogData = {
+                        title: 'Google Drive Account Login',
+                        iframeURL: body.data.authLink
+                    }
+                    const authDialog = dialogBuilder.getIframeDialog(authDialogData);
+                    dialogResponse.dialog = authDialog;
+                    break;
+            }
+
+            res.status(200);
+            res.send(dialogResponse);
             return;
         }
 

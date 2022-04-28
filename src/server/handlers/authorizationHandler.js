@@ -123,7 +123,7 @@ async function oauthCallback(req, res) {
         res.send('Internal error.');
     }
     res.status(200);
-    res.send('<!doctype><html><body>Successfully authorized. You can close this page now.<script>window.close()</script></body></html>')
+    res.send('<!doctype><html><body>Successfully authorized. Please close this page.</body></html>')
 };
 
 async function checkUserFileAccess(googleUser, fileId) {

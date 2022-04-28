@@ -58,7 +58,7 @@ const botHandler = async event => {
                             const authLink = `${oauthApp.code.getUri({
                                 state: `botId=${botForMessage.id}&rcUserId=${userId}`
                             })}&access_type=offline`;
-                            const authCard = cardBuilder.authCard(authLink);
+                            const authCard = cardBuilder.authCard(authLink, botForMessage.id);
                             await botForMessage.sendAdaptiveCard(createGroupResponse.id, authCard);
                         }
                         break;
@@ -228,7 +228,7 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
             const authLink = `${oauthApp.code.getUri({
                 state: `botId=${bot.id}&rcUserId=${userId}`
             })}&access_type=offline`;
-            const authCard = cardBuilder.authCard(authLink, 'Someone shared a file that requires logging in Google Account to access. Please log in with button below.');
+            const authCard = cardBuilder.authCard(authLink, bot.id, 'Someone shared a file that requires logging in Google Account to access. Please log in with button below.');
             if (rcUser) {
                 if (moment(nowDate).unix() > moment(rcUser.authReminderExpiryDateTime).unix()) {
                     await bot.sendAdaptiveCard(dmGroupId, authCard);

@@ -145,12 +145,14 @@ function fileInfoCard(botId, googleFile) {
     return card;
 }
 
-function authCard(authLink, additionalInfoText) {
+function authCard(authLink, botId, additionalInfoText) {
     const template = new Template(authCardTemplateJson);
     const cardData = {
-        link: authLink,
+        authLink,
         additionalInfoText,
-        showAdditionalInfo: additionalInfoText != null
+        showAdditionalInfo: additionalInfoText != null,
+        returnDialog: true,
+        botId
     }
     const card = template.expand({
         $root: cardData

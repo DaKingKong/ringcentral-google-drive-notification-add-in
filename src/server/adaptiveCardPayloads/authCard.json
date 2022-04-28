@@ -26,8 +26,13 @@
         {
             "type": "Image",
             "selectAction": {
-                "type": "Action.OpenUrl",
-                "url": "${link}"
+                "type": "Action.Submit",
+                "data": {
+                    "actionType": "auth",
+                    "returnDialog": "${returnDialog}",
+                    "botId": "${botId}",
+                    "authLink": "${authLink}"
+                }
             },
             "url": "https://raw.githubusercontent.com/ringcentral/ringcentral-google-drive-notification-add-in/master/staticResources/google-login-button.png"
         },
