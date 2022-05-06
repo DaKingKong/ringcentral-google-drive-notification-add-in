@@ -41,7 +41,7 @@
                             "items": [
                                 {
                                     "type": "TextBlock",
-                                    "text": "**${fileName}** (${subscriptionState})"
+                                    "text": "**[${fileName}](${fileUrl})** (${subscriptionState})"
                                 }
                             ],
                             "width": "stretch",

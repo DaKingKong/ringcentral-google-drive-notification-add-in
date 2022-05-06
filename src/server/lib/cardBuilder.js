@@ -31,6 +31,7 @@ async function subscriptionListCard(botId, groupId) {
             if (subscription.state === 'muted') {
                 mutedSubscriptionList.push({
                     iconLink: file.iconLink,
+                    fileUrl: file.url,
                     fileName: file.name,
                     rcUserName: subscription.rcUserName,
                     fileId,
@@ -43,6 +44,7 @@ async function subscriptionListCard(botId, groupId) {
             else {
                 activeSubscriptionList.push({
                     iconLink: file.iconLink,
+                    fileUrl: file.url,
                     fileName: file.name,
                     rcUserName: subscription.rcUserName,
                     fileId,
@@ -93,7 +95,7 @@ function subscribeCard(botId) {
     return card;
 }
 
-function subscribeConfigCard(subscriptionId, fileId, iconLink, fileName, botId, subscriptionState) {
+function subscribeConfigCard(subscriptionId, fileId, iconLink, fileUrl, fileName, botId, subscriptionState) {
     const template = new Template(subscribeCardTemplateJson);
     const cardData = {
         mode: 'config',
@@ -101,6 +103,7 @@ function subscribeConfigCard(subscriptionId, fileId, iconLink, fileName, botId, 
         subscriptionId,
         fileId,
         iconLink,
+        fileUrl,
         fileName,
         botId,
         subscriptionState
@@ -121,6 +124,7 @@ function grantFileAccessCard(botId, googleFile, googleUserInfo, rcUserNames) {
         fileName: googleFile.name,
         fileIconUrl: googleFile.iconLink,
         fileOwnerEmail: googleFile.ownerEmail,
+        fileUrl: googleFile.url,
         botId
     }
     const card = template.expand({

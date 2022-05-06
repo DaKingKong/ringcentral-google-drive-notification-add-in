@@ -111,6 +111,7 @@ async function interactiveMessages(req, res) {
                     body.data.subscriptionId,
                     body.data.fileId,
                     body.data.iconLink,
+                    body.data.fileUrl,
                     body.data.fileName,
                     bot.id,
                     body.data.subscriptionState

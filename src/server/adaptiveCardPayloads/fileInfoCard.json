@@ -31,7 +31,7 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "${fileName} (owner: ${fileOwnerEmail})",
+                            "text": "[${fileName}](${fileUrl}) (owner: ${fileOwnerEmail})",
                             "wrap": true
                         }
                     ],

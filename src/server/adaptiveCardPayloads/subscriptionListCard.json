@@ -29,7 +29,7 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "**${fileName}** (${subscriptionState})"
+                            "text": "**[${fileName}](${fileUrl})** (${subscriptionState})"
                         }
                     ],
                     "width": "stretch",
@@ -50,6 +50,7 @@
                                         "botId": "${botId}",
                                         "fileId": "${fileId}",
                                         "iconLink": "${iconLink}",
+                                        "fileUrl": "${fileUrl}",
                                         "fileName": "${fileName}",
                                         "rcUserName": "${rcUserName}",
                                         "subscriptionId": "${subscriptionId}",
@@ -91,7 +92,7 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "**${fileName}** (${subscriptionState})"
+                            "text": "**[${fileName}](${fileUrl})** (${subscriptionState})"
                         }
                     ],
                     "width": "stretch",
@@ -112,6 +113,7 @@
                                         "botId": "${botId}",
                                         "fileId": "${fileId}",
                                         "iconLink": "${iconLink}",
+                                        "fileUrl": "${fileUrl}",
                                         "fileName": "${fileName}",
                                         "rcUserName": "${rcUserName}",
                                         "subscriptionId": "${subscriptionId}",
