@@ -58,7 +58,7 @@
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "${fileName}",
+                            "text": "[${fileName}](${fileUrl})",
                             "wrap": true,
                             "weight": "Bolder"
                         }
