@@ -69,6 +69,7 @@ async function onReceiveNotification(googleUser) {
             });
         }
 
+        console.log(`OwnByMe: ${fileData.ownedByMe}\nIsReceiveNewFile: ${googleUser.isReceiveNewFile}\n SharedWithMeTime: ${fileData.sharedWithMeTime}`);
         // Case: New File Share With Me
         if (!fileData.ownedByMe && googleUser.isReceiveNewFile && fileData.sharedWithMeTime && isEventNew(change.time, fileData.sharedWithMeTime)) {
             console.log('===========NEW FILE============');
