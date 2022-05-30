@@ -60,7 +60,10 @@
             ]
         },
         "getGroupInfo": {
-            "none": []
+            "none": [],
+            "withName": {
+                "name": "groupName"
+            }
         },
         "createConversation": {
             "successfulCreation": {

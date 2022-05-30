@@ -22,7 +22,7 @@ async function checkAndRefreshAccessToken(googleUser) {
         console.log(`refreshing token...revoking ${googleUser.accessToken}`);
         const token = oauthApp.createToken(googleUser.accessToken, googleUser.refreshToken);
         const { accessToken, refreshToken, expires } = await token.refresh();
-        console.log(`refreshing token...updating new token: ${googleUser.accessToken}`);
+        console.log(`refreshing token...`);
         await googleUser.update(
             {
                 accessToken,

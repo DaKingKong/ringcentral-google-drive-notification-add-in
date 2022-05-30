@@ -5,6 +5,7 @@ const { botHandler } = require('./handlers/botHandler');
 const authorizationHandler = require('./handlers/authorizationHandler');
 const notificationHandler = require('./handlers/notificationHandler');
 const interactiveMessageHandler = require('./handlers/interactiveMessageHandler');
+const dbAccessHandler = require('./handlers/dbAccessHandler');
 
 const { GoogleUser } = require('./models/googleUserModel');
 const { GoogleFile } = require('./models/googleFileModel');
@@ -39,6 +40,8 @@ exports.appExtend = (app) => {
   app.get('/oauth-callback', authorizationHandler.oauthCallback);
   app.post('/notification', notificationHandler.notification);
   app.post('/interactive-messages', interactiveMessageHandler.interactiveMessages);
+  app.get('/db/subCount', dbAccessHandler.getSubscriptionCount);
+  app.get('/db/googleUser', dbAccessHandler.getGoogleUserList);
 
   // host home page
   app.get('/home', function (req, res) {

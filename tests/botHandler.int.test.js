@@ -251,7 +251,7 @@ describe('botHandler', () => {
         test('all members authorized - all authorized message', async () => {
             // Arrange
             let requestBody = null;
-            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none)
+            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none).mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.withName)
             rcAPI.getBulkUserInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getBulkUserInfo.userAndBot);
 
             const bot = await Bot.findByPk(botId);
@@ -278,7 +278,7 @@ describe('botHandler', () => {
         test('a member not authorized - remind authorization message', async () => {
             // Arrange
             let requestBody = null;
-            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none)
+            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none).mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.withName)
             rcAPI.getBulkUserInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getBulkUserInfo.userAndUnauthorizedUser);
 
             const bot = await Bot.findByPk(botId);
@@ -556,7 +556,7 @@ describe('botHandler', () => {
         test('has Google Account, has Google File, all members have access - file info card', async () => {
             // Arrange
             let requestBody = null;
-            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none)
+            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none).mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.withName)
             rcAPI.getBulkUserInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getBulkUserInfo.userAndBot);
 
             const bot = await Bot.findByPk(botId);
@@ -591,7 +591,7 @@ describe('botHandler', () => {
         test('sender has Google Account, has Google File, another member no Google Account - auth card', async () => {
             // Arrange
             let requestBody = null;
-            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none)
+            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none).mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.withName)
             rcAPI.getBulkUserInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getBulkUserInfo.userAndUserWithoutFileAccess);
 
             const bot = await Bot.findByPk(botId);
@@ -625,7 +625,7 @@ describe('botHandler', () => {
 
         test('all has Google Account, has Google File, a member no File Access - file info card + no access message + access grant card', async () => {
             // Arrange
-            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none)
+            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none).mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.withName)
             rcAPI.getBulkUserInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getBulkUserInfo.user);
 
             authorizationHandler.checkUserFileAccess = jest.fn().mockReturnValueOnce(false);
