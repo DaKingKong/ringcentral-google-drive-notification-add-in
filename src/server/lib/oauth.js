@@ -17,23 +17,28 @@ function getOAuthApp() {
 }
 
 async function checkAndRefreshAccessToken(googleUser) {
-    const dateNow = new Date();
-    if (googleUser && googleUser.refreshToken && (googleUser.tokenExpiredAt < dateNow || !googleUser.accessToken)) {
-        console.log(`refreshing token...revoking ${googleUser.accessToken}`);
-        const token = oauthApp.createToken(googleUser.accessToken, googleUser.refreshToken);
-        const { accessToken, refreshToken, expires } = await token.refresh();
-        console.log(`refreshing token...`);
-        await googleUser.update(
-            {
-                accessToken,
-                refreshToken,
-                tokenExpiredAt: expires,
-            }
-        );
+    try {
+        const dateNow = new Date();
+        if (googleUser && googleUser.refreshToken && (googleUser.tokenExpiredAt < dateNow || !googleUser.accessToken)) {
+            console.log(`refreshing token...revoking ${googleUser.accessToken}`);
+            const token = oauthApp.createToken(googleUser.accessToken, googleUser.refreshToken);
+            const { accessToken, refreshToken, expires } = await token.refresh();
+            console.log(`refreshing token...`);
+            await googleUser.update(
+                {
+                    accessToken,
+                    refreshToken,
+                    tokenExpiredAt: expires,
+                }
+            );
+        }
+    }
+    catch (e) {
+        console.error(e.message);
     }
 }
 
-async function revokeToken(googleUser){
+async function revokeToken(googleUser) {
     await checkAndRefreshAccessToken(googleUser);
     await axios.post(
         `https://oauth2.googleapis.com/revoke?token=${googleUser.refreshToken}`
