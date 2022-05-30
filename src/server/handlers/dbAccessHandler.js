@@ -1,4 +1,3 @@
-const crypto = require('crypto');
 const { GoogleUser } = require('../models/googleUserModel');
 const { Subscription } = require('..//models/subscriptionModel');
 
@@ -22,7 +21,7 @@ async function getGoogleUserList(req, res) {
     const basicAuth = req.headers.authorization.split('Basic ')[1];
     if (basicAuth == basicAuthString) {
         const googleUsers = await GoogleUser.findAll();
-        const resultData = googleUsers.map(g => { return { email: g.email, botId: g.botId } });
+        const resultData = googleUsers.map(g => { return { email: g.email, botId: g.botId, isReceiveNewFile: isReceiveNewFile } });
         res.status(200);
         res.json(resultData);
     }
