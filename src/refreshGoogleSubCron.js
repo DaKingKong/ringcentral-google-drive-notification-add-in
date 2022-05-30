@@ -22,7 +22,8 @@ async function refreshSubscription() {
         console.log(successMessage);
     }
     catch (e) {
-        axios.post(
+        console.log(e.message);
+        await axios.post(
             'https://hooks.ringcentral.com/webhook/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvdCI6InUiLCJvaSI6IjE0MDU1MDk2NDgzODciLCJpZCI6IjEzNzg3NTQ1ODcifQ.Nq6z0NWegffNJWZdPIOjePFfCUCgK3bBCk4Z3SDY_hY',
             {
                 "title": `refresh subscription error: ${e.message}`
