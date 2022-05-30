@@ -11,19 +11,20 @@ async function refreshSubscription() {
         for (const googleUser of googleUsers) {
             console.log(`refreshing subscriptions for user: ${googleUser.email}...`);
             try {
-                await subscriptionHandler.stopSubscriptionForUser(googleUser);
+                subscriptionHandler.stopSubscriptionForUser(googleUser);
             }
             catch (e) {
                 console.log(`${googleUser.email}'s old subscription already expired.`);
             }
-            await subscriptionHandler.createGlobalSubscription(googleUser);
+            subscriptionHandler.createGlobalSubscription(googleUser);
             successMessage += `User: ${googleUser.name}(${googleUser.email}) refreshed.\n`;
         }
         console.log(successMessage);
+        return;
     }
     catch (e) {
         console.log(e.message);
-        await axios.post(
+        axios.post(
             'https://hooks.ringcentral.com/webhook/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvdCI6InUiLCJvaSI6IjE0MDU1MDk2NDgzODciLCJpZCI6IjEzNzg3NTQ1ODcifQ.Nq6z0NWegffNJWZdPIOjePFfCUCgK3bBCk4Z3SDY_hY',
             {
                 "title": `refresh subscription error: ${e.message}`
