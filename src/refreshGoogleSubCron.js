@@ -10,14 +10,7 @@ async function refreshSubscription() {
         const googleUsers = await GoogleUser.findAll();
         for (const googleUser of googleUsers) {
             console.log(`refreshing subscriptions for user: ${googleUser.email}...`);
-            try {
-                subscriptionHandler.stopSubscriptionForUser(googleUser);
-            }
-            catch (e) {
-                console.log(`${googleUser.email}'s old subscription already expired.`);
-            }
-            subscriptionHandler.createGlobalSubscription(googleUser);
-            successMessage += `User: ${googleUser.name}(${googleUser.email}) refreshed.\n`;
+            subscriptionHandler.refreshSubscriptionForUser(googleUser);
         }
         console.log(successMessage);
         return;

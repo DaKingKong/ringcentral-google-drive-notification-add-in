@@ -19,7 +19,8 @@ async function triggerDigest() {
         const subscriptionsOnDay = weeklySubscriptionsOnDay.concat(dailySubscriptions);
         const subscriptionsToTrigger = subscriptionsOnDay.filter(s => moment(new Date()).utc().hour() - moment(s.startTime).utc().hour() === 0);
         console.log(`digest count: ${subscriptionsToTrigger.length}`)
-        await notificationHandler.SendDigestNotification(subscriptionsToTrigger);
+        notificationHandler.SendDigestNotification(subscriptionsToTrigger);
+        return;
     }
     catch (e) {
         console.log(e.message);

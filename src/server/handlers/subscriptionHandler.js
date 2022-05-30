@@ -201,9 +201,20 @@ async function stopSubscriptionForUser(googleUser) {
   });
 }
 
+async function refreshSubscriptionForUser(googleUser) {
+  try {
+      await stopSubscriptionForUser(googleUser);
+  }
+  catch (e) {
+      console.log(`${googleUser.email}'s old subscription already expired.`);
+  }
+  await createGlobalSubscription(googleUser);
+}
+
 exports.createGlobalSubscription = createGlobalSubscription;
 exports.addFileSubscription = addFileSubscription;
 exports.setSubscriptionStateAndStartTime = setSubscriptionStateAndStartTime;
 exports.muteSubscription = muteSubscription;
 exports.removeFileFromSubscription = removeFileFromSubscription;
 exports.stopSubscriptionForUser = stopSubscriptionForUser;
+exports.refreshSubscriptionForUser = refreshSubscriptionForUser;
