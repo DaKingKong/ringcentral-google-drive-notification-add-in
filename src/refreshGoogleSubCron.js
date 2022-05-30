@@ -10,7 +10,7 @@ async function refreshSubscription() {
         const googleUsers = await GoogleUser.findAll();
         for (const googleUser of googleUsers) {
             console.log(`refreshing subscriptions for user: ${googleUser.email}...`);
-            subscriptionHandler.refreshSubscriptionForUser(googleUser);
+            await subscriptionHandler.refreshSubscriptionForUser(googleUser);
         }
         console.log(successMessage);
         return;

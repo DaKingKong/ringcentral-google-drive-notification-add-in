@@ -71,7 +71,7 @@ async function addFileSubscription(googleUser, groupId, botId, fileId, state, ho
       };
     }
   }
-  
+
   const existingFile = await GoogleFile.findByPk(checkFileResponse.data.id);
   if (!existingFile) {
     await GoogleFile.create({
@@ -166,7 +166,7 @@ async function muteSubscription(botId, groupId, fileId) {
     console.error('subscription not found.')
     return;
   }
-  
+
   await subscription.update({
     state: 'muted'
   });
@@ -187,26 +187,36 @@ async function stopSubscriptionForUser(googleUser) {
   await checkAndRefreshAccessToken(googleUser);
   const drive = google.drive({ version: 'v3', headers: { Authorization: `Bearer ${googleUser.accessToken}` } });
 
-  await drive.channels.stop({
-    requestBody: {
-      id: googleUser.googleSubscriptionId,
-      resourceId: googleUser.googleResourceId
-    }
-  });
+  try {
+    await drive.channels.stop({
+      requestBody: {
+        id: googleUser.googleSubscriptionId,
+        resourceId: googleUser.googleResourceId
+      }
+    });
+  }
+  catch (e) {
+    console.log(e.message);
+  }
 
-  await Subscription.destroy({
+  const existingSub = await Subscription.findOne({
     where: {
       googleUserId: googleUser.id
     }
   });
+  if (existingSub) {
+    await existingSub.destroy();
+  }
+
+  console.log(`stopped subscription for user ${googleUser.email}`);
 }
 
 async function refreshSubscriptionForUser(googleUser) {
   try {
-      await stopSubscriptionForUser(googleUser);
+    await stopSubscriptionForUser(googleUser);
   }
   catch (e) {
-      console.log(`${googleUser.email}'s old subscription already expired.`);
+    console.log(`${googleUser.email}'s old subscription already expired.`);
   }
   await createGlobalSubscription(googleUser);
 }
