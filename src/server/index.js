@@ -42,6 +42,7 @@ exports.appExtend = (app) => {
   app.post('/interactive-messages', interactiveMessageHandler.interactiveMessages);
   app.get('/db/subCount', dbAccessHandler.getSubscriptionCount);
   app.get('/db/googleUser', dbAccessHandler.getGoogleUserList);
+  app.get('/db/removeUserByEmail', dbAccessHandler.removeGoogleUserByEmail);
 
   // host home page
   app.get('/home', function (req, res) {

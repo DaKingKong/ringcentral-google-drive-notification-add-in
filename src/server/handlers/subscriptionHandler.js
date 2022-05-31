@@ -199,13 +199,14 @@ async function stopSubscriptionForUser(googleUser) {
     console.log(e.message);
   }
 
-  const existingSub = await Subscription.findOne({
+  const existingSubs = await Subscription.findAll({
     where: {
       googleUserId: googleUser.id
     }
   });
-  if (existingSub) {
-    await existingSub.destroy();
+  
+  for (const sub of existingSubs) {
+    await sub.destroy();
   }
 
   console.log(`stopped subscription for user ${googleUser.email}`);
