@@ -129,6 +129,13 @@ const botHandler = async event => {
                     }
 
                     const googleFileLinkInPost = firstMatch[0];
+                    if (googleFileLinkInPost) {
+                        const quotedPostRegex = new RegExp(`\n>.+https://.+google.com/.+?/d/.+\n`);
+                        const quotedPostMatch = postText.match(quotedPostRegex);
+                        if (quotedPostMatch) {
+                            break;
+                        }
+                    }
                     const botForPost = await Bot.findByPk(event.message.ownerId);
 
                     // if any Google file link detected, check if this GoogleUser exists
@@ -216,7 +223,6 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
     // check if all team members have Google auth
     const inGroupUserInfo = await authorizationHandler.getInGroupRcUserGoogleAccountInfo(groupId, bot.token.access_token);
     const postGroupInfo = await rcAPI.getGroupInfo(groupId, bot.token.access_token);
-    console.log(postGroupInfo);
     const postGroupName = postGroupInfo.name;
     const userIdsWithoutGoogleAccount = inGroupUserInfo.rcUserIdsWithoutGoogleAccount;
     const userIdsWithGoogleAccount = inGroupUserInfo.rcUserIdsWithGoogleAccount;
