@@ -1,6 +1,6 @@
 {
     "name": "ringcentral-google-drive-notification-add-in",
-    "version": "0.2.22",
+    "version": "0.2.23",
     "description": "RingCentral Add-In App",
     "keywords": [
         "RingCentral",
@@ -9,7 +9,6 @@
     ],
     "bin": "bin/index.js",
     "scripts": {
-        "ngrok": "ngrok http -region us 6066 ",
         "server": "node ./src/run-server.js",
         "start": "npm run server",
         "initDB": "node ./scripts/init-db",
@@ -41,7 +40,6 @@
         "commander": "^9.1.0",
         "inquirer": "^8.2.1",
         "jest": "^27.5.1",
-        "ngrok": "^3.3.0",
         "nock": "^13.2.4",
         "react": "^16.14.0",
         "react-dom": "^16.14.0",
