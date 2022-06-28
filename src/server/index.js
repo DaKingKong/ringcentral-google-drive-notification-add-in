@@ -11,8 +11,6 @@ const { GoogleFile } = require('./models/googleFileModel');
 const { Subscription } = require('./models/subscriptionModel');
 const { RcUser } = require('./models/rcUserModel');
 
-const packageJson = require('../../package.json') ? require('../../package.json') : require('../package.json');
-
 // extends or override express app as you need
 exports.appExtend = (app) => {
   const skills = [];
@@ -33,7 +31,7 @@ exports.appExtend = (app) => {
     app.listen(process.env.RINGCENTRAL_CHATBOT_EXPRESS_PORT);
   }
 
-  app.get('/is-alive', (req, res) => { res.send(`OK\n${packageJson.version}`); });
+  app.get('/is-alive', (req, res) => { res.send(`OK`); });
 
   console.log('server running...');
   console.log(`bot oauth uri: ${process.env.RINGCENTRAL_CHATBOT_SERVER}${botConfig.botRoute}/oauth`);
