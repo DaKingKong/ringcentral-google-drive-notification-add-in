@@ -11,7 +11,7 @@ const { GoogleFile } = require('./models/googleFileModel');
 const { Subscription } = require('./models/subscriptionModel');
 const { RcUser } = require('./models/rcUserModel');
 
-const packageJson = require('../../package.json');
+const packageJson = require('../../package.json') ? require('../../package.json') : require('../package.json');
 
 // extends or override express app as you need
 exports.appExtend = (app) => {
@@ -28,7 +28,7 @@ exports.appExtend = (app) => {
   }
 
   extendApp(app, skills, botHandler, botConfig);
-  
+
   if (process.env.NODE_ENV !== 'test') {
     app.listen(process.env.RINGCENTRAL_CHATBOT_EXPRESS_PORT);
   }
