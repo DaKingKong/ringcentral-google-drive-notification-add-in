@@ -5,12 +5,13 @@ const { botHandler } = require('./handlers/botHandler');
 const authorizationHandler = require('./handlers/authorizationHandler');
 const notificationHandler = require('./handlers/notificationHandler');
 const interactiveMessageHandler = require('./handlers/interactiveMessageHandler');
-const dbAccessHandler = require('./handlers/dbAccessHandler');
 
 const { GoogleUser } = require('./models/googleUserModel');
 const { GoogleFile } = require('./models/googleFileModel');
 const { Subscription } = require('./models/subscriptionModel');
 const { RcUser } = require('./models/rcUserModel');
+
+const packageJson = require('../../package.json');
 
 // extends or override express app as you need
 exports.appExtend = (app) => {
@@ -32,7 +33,7 @@ exports.appExtend = (app) => {
     app.listen(process.env.RINGCENTRAL_CHATBOT_EXPRESS_PORT);
   }
 
-  app.get('/is-alive', (req, res) => { res.send('OK'); });
+  app.get('/is-alive', (req, res) => { res.send(`OK\n${packageJson.version}`); });
 
   console.log('server running...');
   console.log(`bot oauth uri: ${process.env.RINGCENTRAL_CHATBOT_SERVER}${botConfig.botRoute}/oauth`);
@@ -40,9 +41,6 @@ exports.appExtend = (app) => {
   app.get('/oauth-callback', authorizationHandler.oauthCallback);
   app.post('/notification', notificationHandler.notification);
   app.post('/interactive-messages', interactiveMessageHandler.interactiveMessages);
-  app.get('/db/subCount', dbAccessHandler.getSubscriptionCount);
-  app.get('/db/googleUser', dbAccessHandler.getGoogleUserList);
-  app.delete('/db/removeUserByEmail', dbAccessHandler.removeGoogleUserByEmail);
 
   // host home page
   app.get('/home', function (req, res) {

@@ -110,8 +110,8 @@ const botHandler = async event => {
                         }
                         break;
                     case 'help':
-                        await botForMessage.sendMessage(cmdGroup.id, { text: helperText });
                     default:
+                        await botForMessage.sendMessage(cmdGroup.id, { text: helperText });
                         break;
                 }
                 break;
@@ -129,6 +129,7 @@ const botHandler = async event => {
                     }
 
                     const googleFileLinkInPost = firstMatch[0];
+                    // Not show File Card when link is in a quoted message
                     if (googleFileLinkInPost) {
                         const quotedPostRegex = new RegExp(`\n>.+https://.+google.com/.+?/d/.+\n`);
                         const quotedPostMatch = postText.match(quotedPostRegex);
