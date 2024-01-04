@@ -4,7 +4,9 @@ const { GoogleUser } = require('../models/googleUserModel');
 const Bot = require('ringcentral-chatbot-core/dist/models/Bot').default;
 const { revokeToken, checkAndRefreshAccessToken } = require('../lib/oauth');
 const cardBuilder = require('../lib/cardBuilder');
+const dialogBuilder = require('../lib/dialogBuilder');
 const rcAPI = require('../lib/rcAPI');
+const { getOAuthApp } = require('../lib/oauth');
 
 const subscriptionHandler = require('./subscriptionHandler');
 const authorizationHandler = require('./authorizationHandler');
@@ -52,9 +54,17 @@ async function interactiveMessages(req, res) {
         const createGroupResponse = await rcAPI.createConversation([rcUserId], bot.token.access_token);
 
         if (!googleUser) {
-            await bot.sendMessage(groupId, { text: `![:Person](${rcUserId}) Google Drive account not found. Please message me with \`login\` to login.` });
+            const oauthApp = getOAuthApp();
+            const authLink = `${oauthApp.code.getUri({
+                state: `botId=${bot.id}&rcUserId=${rcUserId}`
+            })}&access_type=offline`;
+            const authCard = cardBuilder.authCard(authLink);
+            const dialogResponse = {
+                type: "dialog",
+                dialog: dialogBuilder.getCardDialog({ title: 'Login', size: null, iconURL: null, card: authCard })
+            };
             res.status(200);
-            res.json('OK')
+            res.send(dialogResponse);
             return;
         }
 

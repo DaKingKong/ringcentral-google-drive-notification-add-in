@@ -19,9 +19,9 @@ const helperText =
     'Message me **directly** with a `{command}` OR in a **team** with `@Google Drive Bot {command}`. My commands:\n' +
     '1. `login`: **Login** with your Google Account\n' +
     '2. `logout`: **Logout** your Google Account and **clear all** subscriptions created by it\n' +
-    '3. `checkauth`: **Check** team members on their Google Account login status and remind those who don\'t have Google Account authorized\n' +
-    '4. `sub`: **Create** a new subscription for `New Comment` under this channel\n' +
-    '5. `list`: **List** all subscriptions for `New Comment` under this channel\n\n' +
+    // '3. `checkauth`: **Check** team members on their Google Account login status and remind those who don\'t have Google Account authorized\n' +
+    '3. `sub`: **Create** a new subscription for `New Comment` under this channel\n' +
+    '4. `list`: **List** all subscriptions for `New Comment` under this channel\n\n' +
     'Note: It\'s recommended to add me into a team that has `<50` members for good `response speed` and avoid `too many subscriptions` from different members.'
 
 const botHandler = async event => {
@@ -71,10 +71,10 @@ const botHandler = async event => {
                             await botForMessage.sendAdaptiveCard(createGroupResponse.id, unAuthCard);
                         }
                         break;
-                    case 'checkauth':
-                        checkMembersGoogleAccountAuth(botForMessage, cmdGroup.id);
-                        await botForMessage.sendMessage(cmdGroup.id, { text: 'Authorizations checked. Authorization Cards are sent.' });
-                        break;
+                    // case 'checkauth':
+                    //     checkMembersGoogleAccountAuth(botForMessage, cmdGroup.id);
+                    //     await botForMessage.sendMessage(cmdGroup.id, { text: 'Authorizations checked. Authorization Cards are sent.' });
+                    //     break;
                     case 'sub':
                     case 'subscribe':
                         if (!existingGoogleUser) {

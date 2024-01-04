@@ -9,6 +9,7 @@ const newCommentCardTemplateJson = require('../adaptiveCardPayloads/newCommentCa
 const newFileSharedWithMeCardTemplateJson = require('../adaptiveCardPayloads/newFileShareWithMeCard.json');
 const commentDigestCardTemplateJson = require('../adaptiveCardPayloads/commentDigestCard.json');
 const configCardTemplateJson = require('../adaptiveCardPayloads/configCard.json');
+const simpleTextCardTemplateJson = require('../adaptiveCardPayloads/simpleTextCard.json');
 
 const { Subscription } = require('../models/subscriptionModel');
 const { GoogleFile } = require('../models/googleFileModel');
@@ -240,6 +241,18 @@ function configCard(botId, isNewFileNotificationOn) {
     return card;
 }
 
+
+function simpleTextCard(text) {
+    const configCardTemplate = new Template(simpleTextCardTemplateJson);
+    const cardData = {
+        text
+    }
+    const card = configCardTemplate.expand({
+        $root: cardData
+    });
+    return card;
+}
+
 exports.subscriptionListCard = subscriptionListCard;
 exports.subscribeCard = subscribeCard;
 exports.subscribeConfigCard = subscribeConfigCard;
@@ -251,3 +264,4 @@ exports.newCommentCard = newCommentCard;
 exports.newFileShareCard = newFileShareCard;
 exports.commentDigestCard = commentDigestCard;
 exports.configCard = configCard;
+exports.simpleTextCard = simpleTextCard;
