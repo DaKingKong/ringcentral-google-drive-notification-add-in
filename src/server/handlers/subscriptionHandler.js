@@ -4,6 +4,7 @@ const { GoogleFile } = require('../models/googleFileModel');
 const { checkAndRefreshAccessToken } = require('../lib/oauth');
 const { generate } = require('shortid');
 const moment = require('moment');
+const { GoogleUser } = require('../models/googleUserModel');
 
 async function createGlobalSubscription(googleUser) {
   await checkAndRefreshAccessToken(googleUser);
@@ -29,11 +30,18 @@ async function createGlobalSubscription(googleUser) {
 
   console.log(`Subscription created: ${JSON.stringify(watchResponse.data)}`);
 
-  await googleUser.update({
-    googleSubscriptionId: watchResponse.data.id,
-    googleResourceId: watchResponse.data.resourceId,
-    startPageToken: pageToken,
-  })
+  await GoogleUser.update(
+    {
+      googleSubscriptionId: watchResponse.data.id,
+      googleResourceId: watchResponse.data.resourceId,
+      startPageToken: pageToken
+    },
+    {
+      where: {
+        id: googleUser.id
+      }
+    }
+  );
 
   return true;
 }
@@ -147,10 +155,17 @@ async function setSubscriptionStateAndStartTime(botId, groupId, fileId, state, h
       break;
   }
 
-  await subscription.update({
-    state,
-    startTime
-  });
+  await Subscription.update(
+    {
+      state,
+      startTime
+    },
+    {
+      where: {
+        id: subscription.id
+      }
+    }
+  )
 }
 
 async function muteSubscription(botId, groupId, fileId) {
@@ -167,9 +182,16 @@ async function muteSubscription(botId, groupId, fileId) {
     return;
   }
 
-  await subscription.update({
-    state: 'muted'
-  });
+  await Subscription.update(
+    {
+      state: 'muted'
+    },
+    {
+      where: {
+        id: subscription.id
+      }
+    }
+  )
 }
 
 async function removeFileFromSubscription(botId, groupId, fileId) {
@@ -204,7 +226,7 @@ async function stopSubscriptionForUser(googleUser) {
       googleUserId: googleUser.id
     }
   });
-  
+
   for (const sub of existingSubs) {
     await sub.destroy();
   }

@@ -1,0 +1,22 @@
+RINGCENTRAL_SERVER: https://platform.devtest.ringcentral.com
+RINGCENTRAL_CHATBOT_CLIENT_ID: eTQDoYVHQJKGgRmVAjp4kg
+RINGCENTRAL_CHATBOT_CLIENT_SECRET: xLRV_dxeRy-5_dyvuHi9Tg00Xex16PS4SRPkgbgEHUlA
+RINGCENTRAL_CHATBOT_ADMIN_USERNAME: dakong
+RINGCENTRAL_CHATBOT_ADMIN_PASSWORD: GrassMudHorse2022
+RINGCENTRAL_CHATBOT_DATABASE_USERNAME: dakong
+RINGCENTRAL_CHATBOT_DATABASE_PASSWORD: Testing!123
+IM_SHARED_SECRET: 0oTOq8JP0FN4s1QF7loyCHjuTOK7oEgW
+RINGCENTRAL_CHATBOT_DATABASE_CONNECTION_URI:
+  Fn::Join:
+    - ""
+    - - postgresql://dakong:Testing!123@
+      - "Fn::GetAtt": [Database, Endpoint.Address]
+      - /postgres
+RINGCENTRAL_CHATBOT_SERVER: https://google-drive-add-in.integration.ringcentral.com
+
+CLIENT_ID: 893192585723-bcco97effl5ah8o8ufqchlvtl9fchl5r.apps.googleusercontent.com
+CLIENT_SECRET: nqsw79XdYKPJdMT-NsPr_5qS
+ACCESS_TOKEN_URI: https://oauth2.googleapis.com/token
+AUTHORIZATION_URI: https://accounts.google.com/o/oauth2/v2/auth
+SCOPES: https://www.googleapis.com/auth/drive
+SCOPES_SEPARATOR: ","

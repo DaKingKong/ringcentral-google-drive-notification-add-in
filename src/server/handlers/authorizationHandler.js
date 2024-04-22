@@ -100,8 +100,7 @@ async function oauthCallback(req, res) {
                 accessToken: accessToken,
                 refreshToken: refreshToken,
                 tokenExpiredAt: expires,
-                email: googleUserInfoResponse.email, // [REPLACE] this with actual user email in response, [DELETE] this line if user info doesn't contain email
-                name: googleUserInfoResponse.name, // [REPLACE] this with actual user name in response, [DELETE] this line if user info doesn't contain name,
+                email: googleUserInfoResponse.email,
                 rcDMGroupId: createGroupResponse.id,
                 isReceiveNewFile: true
             });
@@ -150,7 +149,7 @@ async function grantFileAccessToUser(googleFileOwnerUser, fileId, grantUserInfo,
             sendNotificationEmail: false,
             requestBody: {
                 role: permissionRole,
-                emailAddress: grantUserInfo.email,
+                emailAddress: grantUserInfo.email ?? "",
                 type: 'user'
             }
         });

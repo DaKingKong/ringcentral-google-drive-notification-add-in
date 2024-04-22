@@ -1,5 +1,6 @@
 const ClientOAuth2 = require('client-oauth2');
 const axios = require('axios');
+const { GoogleUser } = require('../models/googleUserModel');
 
 // oauthApp strategy is default to 'code' which use credentials to get accessCode, then exchange for accessToken and refreshToken.
 // To change to other strategies, please refer to: https://github.com/mulesoft-labs/js-client-oauth2
@@ -24,11 +25,16 @@ async function checkAndRefreshAccessToken(googleUser) {
             const token = oauthApp.createToken(googleUser.accessToken, googleUser.refreshToken);
             const { accessToken, refreshToken, expires } = await token.refresh();
             console.log(`refreshing token...`);
-            await googleUser.update(
+            await GoogleUser.update(
                 {
                     accessToken,
                     refreshToken,
                     tokenExpiredAt: expires,
+                },
+                {
+                    where: {
+                        id: googleUser.id
+                    }
                 }
             );
         }

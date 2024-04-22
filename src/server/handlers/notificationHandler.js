@@ -17,7 +17,10 @@ function isEventNew(dateTime1, dateTime2) {
 
 async function notification(req, res) {
     try {
-        console.log(`Headers: ${JSON.stringify(req.headers, null, 2)}`);
+        console.log('Incoming notification:');
+        console.log(req.headers);
+        res.send('OK');
+        return;
         // Identify which user or subscription is relevant, normally by 3rd party webhook id or user id. 
         const googleSubscriptionId = req.headers['x-goog-channel-id'];
         const googleUser = await GoogleUser.findOne({
@@ -48,9 +51,16 @@ async function onReceiveNotification(googleUser) {
     console.log(`List Response: ${JSON.stringify(listResponse.data)}`);
     // IF: reaching the end of this page, refresh startPageToken
     if (listResponse.data.newStartPageToken) {
-        await googleUser.update({
-            startPageToken: listResponse.data.newStartPageToken
-        });
+        await GoogleUser.update(
+            {
+                startPageToken: listResponse.data.newStartPageToken
+            },
+            {
+                where: {
+                    id: googleUser.id
+                }
+            }
+        )
     }
 
     const bot = await Bot.findByPk(googleUser.botId);
@@ -64,9 +74,17 @@ async function onReceiveNotification(googleUser) {
 
         // If file name is changed, update that in db
         if (googleFile && fileData.name != googleFile.name) {
-            await googleFile.update({
-                name: fileData.name
-            });
+            await GoogleFile.update(
+                {
+                    name: fileData.name
+                },
+                {
+                    where:
+                    {
+                        id: fileId
+                    }
+                }
+            )
         }
 
         console.log(`OwnByMe: ${fileData.ownedByMe}\nIsReceiveNewFile: ${googleUser.isReceiveNewFile}\n SharedWithMeTime: ${fileData.sharedWithMeTime}`);
@@ -120,9 +138,16 @@ async function onReceiveNotification(googleUser) {
                 console.log('drive.comments.get:', subscription.lastPushedCommentId);
                 if (isEventNew(change.time, commentData.modifiedTime) && isNewComment && subscription.lastPushedCommentId != commentData.id) {
                     console.log('===========NEW COMMENT============');
-                    await subscription.update({
-                        lastPushedCommentId: commentData.id
-                    })
+                    await Subscription.update(
+                        {
+                            lastPushedCommentId: commentData.id
+                        },
+                        {
+                            where: {
+                                id: subscription.id
+                            }
+                        }
+                    );
                     const cardData =
                     {
                         userAvatar: commentData.author.photoLink ?? "https://fonts.gstatic.com/s/i/productlogos/drive_2020q4/v8/web-64dp/logo_drive_2020q4_color_2x_web_64dp.png",
@@ -152,9 +177,15 @@ async function onReceiveNotification(googleUser) {
                     else if (subscription.state === 'daily' || subscription.state === 'weekly') {
                         const cachedInfo = subscription.cachedInfo;
                         cachedInfo.commentNotifications.push(cardData);
-                        await subscription.update({
-                            cachedInfo
-                        });
+                        await Subscription.update(
+                            {
+                                cachedInfo
+                            },
+                            {
+                                where: {
+                                    id: subscription.id
+                                }
+                            });
                     }
                 }
             }
@@ -208,11 +239,18 @@ async function SendDigestNotification(subscriptions) {
 
             // Clear db data only if all info is sent successfully
             for (const sub of subscriptionsInGroup) {
-                await sub.update({
-                    cachedInfo: {
-                        commentNotifications: []
+                await Subscription.update(
+                    {
+                        cachedInfo: {
+                            commentNotifications: []
+                        }
+                    },
+                    {
+                        where: {
+                            id: sub.id
+                        }
                     }
-                });
+                )
             }
         }
     }

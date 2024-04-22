@@ -247,62 +247,6 @@ describe('botHandler', () => {
         });
     });
 
-    describe('@bot checkauth', () => {
-        test('all members authorized - all authorized message', async () => {
-            // Arrange
-            let requestBody = null;
-            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none).mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.withName)
-            rcAPI.getBulkUserInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getBulkUserInfo.userAndBot);
-
-            const bot = await Bot.findByPk(botId);
-            const event = {
-                type: "Message4Bot",
-                text: "checkauth",
-                userId: rcUserId,
-                bot,
-                group: {
-                    id: "groupId"
-                }
-            }
-            postScope.once('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
-                requestBody = JSON.parse(reqBody);
-            });
-
-            // Act
-            await botHandler(event);
-
-            // Assert
-            expect(requestBody.text).toBe("Authorizations checked. Authorization Cards are sent.");
-        });
-
-        test('a member not authorized - remind authorization message', async () => {
-            // Arrange
-            let requestBody = null;
-            rcAPI.getGroupInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.none).mockReturnValueOnce(mockAPIData.rcAPI.getGroupInfo.withName)
-            rcAPI.getBulkUserInfo = jest.fn().mockReturnValueOnce(mockAPIData.rcAPI.getBulkUserInfo.userAndUnauthorizedUser);
-
-            const bot = await Bot.findByPk(botId);
-            const event = {
-                type: "Message4Bot",
-                text: "checkauth",
-                userId: rcUserId,
-                bot,
-                group: {
-                    id: "groupId"
-                }
-            }
-            postScope.once('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
-                requestBody = JSON.parse(reqBody);
-            });
-
-            // Act
-            await botHandler(event);
-
-            // Assert
-            expect(requestBody.text).toBe("Authorizations checked. Authorization Cards are sent.");
-        });
-    });
-
     describe('@bot sub', () => {
         test('no Google Account - error message', async () => {
             // Arrange

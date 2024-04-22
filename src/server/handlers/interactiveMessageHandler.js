@@ -182,15 +182,27 @@ async function interactiveMessages(req, res) {
                 }
                 break;
             case 'turnOnNewFileShareNotification':
-                await googleUser.update({
-                    isReceiveNewFile: true
-                })
+                await GoogleUser.update(
+                    {
+                        isReceiveNewFile: true
+                    },
+                    {
+                        where: {
+                            rcUserId
+                        }
+                    })
                 await bot.sendMessage(groupId, { text: 'New File Share notifications turned ON. You will START receiving notifications when there is a new file shared with you.' });
                 break;
             case 'turnOffNewFileShareNotification':
-                await googleUser.update({
-                    isReceiveNewFile: false
-                })
+                await GoogleUser.update(
+                    {
+                        isReceiveNewFile: false
+                    },
+                    {
+                        where: {
+                            rcUserId
+                        }
+                    })
                 await bot.sendMessage(groupId, { text: 'New File Share notifications turned OFF. You will STOP receiving notifications when there is a new file shared with you.' });
                 break;
         }

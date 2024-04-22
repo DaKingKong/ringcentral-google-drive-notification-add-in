@@ -242,9 +242,16 @@ async function checkMembersGoogleAccountAuth(bot, groupId) {
             if (rcUser) {
                 if (moment(nowDate).unix() > moment(rcUser.authReminderExpiryDateTime).unix()) {
                     await bot.sendAdaptiveCard(dmGroupId, authCard);
-                    await rcUser.update({
-                        authReminderExpiryDateTime: moment(nowDate).add(1, 'month')
-                    });
+                    await RcUser.update(
+                        {
+                            authReminderExpiryDateTime: moment(nowDate).add(1, 'month')
+                        },
+                        {
+                            where: {
+                                id: userId
+                            }
+                        }
+                    );
                 }
             }
             else {

@@ -1,12 +1,12 @@
 const request = require('supertest');
-const rcAPI = require('../src/server/lib/rcAPI');
+const rcAPI = require('../src/server/lib/rcAPI.js');
 const { server } = require('../src/server.js');
-const { GoogleUser } = require('../src/server/models/googleUserModel')
-const { GoogleFile } = require('../src/server/models/googleFileModel')
-const { Subscription } = require('../src/server/models/subscriptionModel')
+const { GoogleUser } = require('../src/server/models/googleUserModel.js')
+const { GoogleFile } = require('../src/server/models/googleFileModel.js')
+const { Subscription } = require('../src/server/models/subscriptionModel.js')
 const { default: Bot } = require('ringcentral-chatbot-core/dist/models/Bot');
 const nock = require('nock');
-const mockAPIData = require('../tests/testData/mockAPIData.json');
+const mockAPIData = require('./testData/mockAPIData.json');
 const moment = require('moment');
 
 const groupId = 'groupId';
@@ -118,9 +118,16 @@ describe('notificationHandler', () => {
 
             // Clean up
             googleChangeListScope.done();
-            await googleUser.update({
-                startPageToken: startPageToken
-            });
+            await GoogleUser.update(
+                {
+                    startPageToken
+                },
+                {
+                    where: {
+                        id: googleUserId
+                    }
+                }
+            )
         });
 
         test('file name change', async () => {
@@ -159,9 +166,16 @@ describe('notificationHandler', () => {
             // Clean up
             googleChangeListScope.done();
             googleFileScope.done();
-            await googleFile.update({
-                name: fileName
-            });
+            await GoogleFile.update(
+                {
+                    name: fileName
+                },
+                {
+                    where: {
+                        id: fileId
+                    }
+                }
+            )
         });
     });
 
@@ -206,10 +220,16 @@ describe('notificationHandler', () => {
                     },
                     capabilities: {}
                 });
-            const googleUser = await GoogleUser.findByPk(googleUserId);
-            await googleUser.update({
-                isReceiveNewFile: true
-            });
+            await GoogleUser.update(
+                {
+                    isReceiveNewFile: true
+                },
+                {
+                    where: {
+                        id: googleUserId
+                    }
+                }
+            )
 
             // Act
             const res = await request(server)
@@ -265,10 +285,16 @@ describe('notificationHandler', () => {
                     },
                     capabilities: {}
                 });
-            const googleUser = await GoogleUser.findByPk(googleUserId);
-            await googleUser.update({
-                isReceiveNewFile: false
-            });
+                await GoogleUser.update(
+                    {
+                        isReceiveNewFile: false
+                    },
+                    {
+                        where: {
+                            id: googleUserId
+                        }
+                    }
+                )
 
             // Act
             const res = await request(server)
@@ -325,10 +351,16 @@ describe('notificationHandler', () => {
                     },
                     capabilities: {}
                 });
-            const googleUser = await GoogleUser.findByPk(googleUserId);
-            await googleUser.update({
-                isReceiveNewFile: true
-            });
+                await GoogleUser.update(
+                    {
+                        isReceiveNewFile: true
+                    },
+                    {
+                        where: {
+                            id: googleUserId
+                        }
+                    }
+                )
 
             cardScope.once('request', ({ headers: requestHeaders }, interceptor, reqBody) => {
                 requestBody = JSON.parse(reqBody);
@@ -394,10 +426,16 @@ describe('notificationHandler', () => {
                     },
                     capabilities: {}
                 });
-            const googleUser = await GoogleUser.findByPk(googleUserId);
-            await googleUser.update({
-                isReceiveNewFile: true
-            });
+                await GoogleUser.update(
+                    {
+                        isReceiveNewFile: true
+                    },
+                    {
+                        where: {
+                            id: googleUserId
+                        }
+                    }
+                )
 
             // Act
             const res = await request(server)

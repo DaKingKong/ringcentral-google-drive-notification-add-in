@@ -1,9 +1,9 @@
 const request = require('supertest');
-const rcAPI = require('../src/server/lib/rcAPI');
+const rcAPI = require('../src/server/lib/rcAPI.js');
 const { server } = require('../src/server.js');
-const { GoogleUser } = require('../src/server/models/googleUserModel')
+const { GoogleUser } = require('../src/server/models/googleUserModel.js')
 const { default: Bot } = require('ringcentral-chatbot-core/dist/models/Bot');
-const { getOAuthApp } = require('../src/server/lib/oauth');
+const { getOAuthApp } = require('../src/server/lib/oauth.js');
 const nock = require('nock');
 const mockAPIData = require('./testData/mockAPIData.json');
 

@@ -13,7 +13,6 @@ async function refreshSubscription() {
     const googleUsers = await GoogleUser.findAll();
     for (const googleUser of googleUsers) {
         try {
-            console.log(`refreshing subscriptions for user: ${googleUser.email}...`);
             await subscriptionHandler.refreshSubscriptionForUser(googleUser);
         }
         catch (e) {
@@ -21,7 +20,7 @@ async function refreshSubscription() {
             await axios.post(
                 'https://hooks.ringcentral.com/webhook/eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJvdCI6InUiLCJvaSI6IjE0MDU1MDk2NDgzODciLCJpZCI6IjEzNzg3NTQ1ODcifQ.Nq6z0NWegffNJWZdPIOjePFfCUCgK3bBCk4Z3SDY_hY',
                 {
-                    "title": `refresh subscription error for ${googleUser.email}\nError: ${e.message}`
+                    "title": `refresh subscription error for ${googleUser.id}\nError: ${e.message}`
                 }
             );
             // If there's an authorization error, we want to remind user that the current token

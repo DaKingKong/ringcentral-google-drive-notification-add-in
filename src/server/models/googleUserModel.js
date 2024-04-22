@@ -11,9 +11,6 @@ exports.GoogleUser = sequelize.define('google-users', {
   email: {
     type: Sequelize.STRING,
   },
-  name: {
-    type: Sequelize.STRING,
-  },
   botId: {
     type: Sequelize.STRING,
   },
